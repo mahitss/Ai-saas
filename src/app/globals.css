@@ -1,3 +1,4 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -123,13 +124,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Inter", sans-serif;
     color-scheme: dark;
     min-height: 100vh;
-    background:
-      radial-gradient(circle at 16% 16%, rgba(67, 255, 47, 0.16), transparent 22%),
-      radial-gradient(circle at 86% 18%, rgba(54, 200, 255, 0.1), transparent 18%),
-      radial-gradient(circle at 50% 86%, rgba(255, 255, 255, 0.05), transparent 22%),
-      linear-gradient(180deg, #010102 0%, #020307 40%, #04070b 100%);
+    background: #000;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
   }
@@ -210,7 +208,62 @@
   }
 }
 
+@keyframes blurFadeUp {
+  from {
+    opacity: 0;
+    filter: blur(20px);
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
 @layer utilities {
+  .animate-blur-fade-up {
+    opacity: 0;
+    animation: blurFadeUp 1s ease-out forwards;
+  }
+
+  .liquid-glass {
+    background: rgba(255, 255, 255, 0.01);
+    background-blend-mode: luminosity;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    border: none;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .liquid-glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.4px;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.45) 0%,
+      rgba(255, 255, 255, 0.15) 20%,
+      rgba(255, 255, 255, 0) 40%,
+      rgba(255, 255, 255, 0) 60%,
+      rgba(255, 255, 255, 0.15) 80%,
+      rgba(255, 255, 255, 0.45) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
   .animate-float-slow {
     animation: floatY 7.2s ease-in-out infinite;
   }

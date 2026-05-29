@@ -1,648 +1,269 @@
 "use client";
 
 import Link from "next/link";
-import type { ComponentProps, RefObject } from "react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties } from "react";
+import { useMemo, useState } from "react";
 import {
-  ArrowRight,
-  Bot,
-  Cpu,
-  Lock,
-  Sparkles,
-  Workflow,
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Menu,
+  Play,
+  Search,
+  Star,
+  User,
+  X,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-type PointerState = {
-  x: number;
-  y: number;
-  active: boolean;
-};
+const videoUrl =
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4";
 
-function useReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const update = () => setReduced(media.matches);
-    update();
-    media.addEventListener("change", update);
-    return () => media.removeEventListener("change", update);
-  }, []);
-
-  return reduced;
+function animationDelay(delay: number) {
+  return { animationDelay: `${delay}ms` };
 }
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function usePointerGlow(ref: RefObject<HTMLElement | null>) {
-  const reducedMotion = useReducedMotion();
-
-  useEffect(() => {
-    const node = ref.current;
-    if (!node || reducedMotion) return;
-
-    const onMove = (event: PointerEvent) => {
-      const rect = node.getBoundingClientRect();
-      const x = ((event.clientX - rect.left) / rect.width) * 100;
-      const y = ((event.clientY - rect.top) / rect.height) * 100;
-      node.style.setProperty("--mx", `${clamp(x, 0, 100)}%`);
-      node.style.setProperty("--my", `${clamp(y, 0, 100)}%`);
-    };
-
-    node.addEventListener("pointermove", onMove);
-    return () => node.removeEventListener("pointermove", onMove);
-  }, [reducedMotion, ref]);
-}
-
-function NeonButton({ className, children, ...props }: ComponentProps<typeof Button>) {
-  return (
-    <Button
-      {...props}
-      className={cn(
-        "group relative isolate rounded-full border border-black/50 bg-black px-7 py-6 text-sm font-semibold text-white shadow-[0_20px_50px_rgba(0,0,0,0.35)] transition-transform duration-300 ease-out hover:-translate-y-0.5 hover:bg-gray-900 active:translate-y-0.5 active:scale-[0.99]",
-        "before:absolute before:inset-0 before:-z-10 before:translate-y-2 before:rounded-full before:bg-black/25 before:blur-xl before:content-['']",
-        className,
-      )}
-    >
-      <span className="flex items-center gap-2">
-        {children}
-        <ArrowRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-      </span>
-    </Button>
-  );
-}
-
-function GlassCard({
-  title,
-  description,
-  icon: Icon,
+function LiquidButton({
+  children,
+  className,
+  href,
+  label,
+  onClick,
+  style,
 }: {
-  title: string;
-  description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+  className?: string;
+  href?: string;
+  label?: string;
+  onClick?: () => void;
+  style?: CSSProperties;
 }) {
-  return (
-    <div className="rounded-[1.4rem] border border-white/10 bg-white/[0.03] p-4 backdrop-blur-xl">
-      <div className="flex items-start gap-3">
-        <div className="grid size-10 shrink-0 place-items-center rounded-2xl border border-black/30 bg-black/20 text-white">
-          <Icon className="size-5" />
-        </div>
-        <div className="space-y-1">
-          <p className="text-sm font-semibold text-white">{title}</p>
-          <p className="text-sm leading-6 text-white/60">{description}</p>
-        </div>
-      </div>
-    </div>
+  const sharedClassName = cn(
+    "liquid-glass inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium text-white transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]",
+    className,
   );
-}
 
-function HeroCanvas({ pointer }: { pointer: PointerState }) {
-  const reducedMotion = useReducedMotion();
-  const glowX = pointer.active ? `${pointer.x}%` : "50%";
-  const glowY = pointer.active ? `${pointer.y}%` : "45%";
-
-  return (
-    <div className="relative isolate overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.015))] p-5 shadow-[0_30px_120px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_12%,rgba(0,0,0,0.18),transparent_20%),radial-gradient(circle_at_50%_100%,rgba(0,0,0,0.12),transparent_32%)]" />
-      <div
-        className="absolute inset-0 opacity-60"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px)",
-          backgroundSize: "42px 42px",
-          maskImage: "linear-gradient(180deg, rgba(0,0,0,0.9), transparent 85%)",
-        }}
-      />
-      <div
-        className="pointer-events-none absolute inset-0 transition-opacity duration-300"
-        style={{
-          background: `radial-gradient(circle at ${glowX} ${glowY}, rgba(0,0,0,0.18), transparent 16%), radial-gradient(circle at ${glowX} ${glowY}, rgba(255,255,255,0.08), transparent 10%)`,
-          opacity: pointer.active ? 1 : 0.75,
-        }}
-      />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/10" />
-
-      <div className="relative grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="space-y-4 lg:pr-6">
-          <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/45 px-3 py-1.5 text-[11px] uppercase tracking-[0.32em] text-white/55">
-            <span className="size-1.5 rounded-full bg-white shadow-[0_0_18px_rgba(255,255,255,0.95)]" />
-            Now available
-          </div>
-
-          <div className="space-y-3">
-            <p className="text-xs uppercase tracking-[0.32em] text-white/30">Logicra Interactive Landing</p>
-            <h1 className="max-w-3xl text-balance text-[clamp(3.1rem,8vw,6.9rem)] font-semibold tracking-[-0.08em] text-white leading-[0.92]">
-              AI infrastructure that
-              <span className="block text-white">looks stunning.</span>
-            </h1>
-            <p className="max-w-2xl text-pretty text-sm leading-7 text-white/56 sm:text-base">
-              Scale your workflows, automate repetitive work, and keep every action visible through a premium control surface that feels fast, trusted, and ready for teams.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <NeonButton onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth", block: "start" })}>
-              Experience Elegance
-            </NeonButton>
-            <Button
-              variant="outline"
-              className="rounded-full border-white/10 bg-white/[0.04] px-7 py-6 text-sm font-semibold text-white/85 shadow-none hover:bg-white/[0.07] hover:text-white"
-              asChild
-            >
-              <Link href="/contact">Contact Sales</Link>
-            </Button>
-          </div>
-
-          <div className="flex flex-wrap gap-2 pt-1">
-            {["Autonomous agents", "MCP live context", "Desktop bridge", "Zero-trust defaults"].map((item) => (
-              <span
-                key={item}
-                className="rounded-full border border-white/10 bg-black/35 px-3 py-1.5 text-[11px] text-white/55"
-              >
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="relative flex items-end justify-center">
-          <div className="absolute inset-x-0 bottom-4 top-0 mx-auto w-[78%] rounded-full bg-black/20 blur-[110px]" />
-          <div className="absolute bottom-12 left-1/2 h-[310px] w-[310px] -translate-x-1/2 rounded-full border border-black/15 bg-[radial-gradient(circle,rgba(0,0,0,0.22),rgba(0,0,0,0.02)_60%,transparent_72%)] blur-[2px]" />
-            <div className="relative w-full max-w-[420px]">
-              <div className="absolute -left-8 top-8 size-24 rounded-full border border-black/25 bg-black/10 blur-sm" />
-              <div className="absolute -right-3 bottom-8 size-20 rounded-full border border-white/10 bg-white/5 blur-sm" />
-              <div
-                className={cn(
-                  "relative mx-auto aspect-[4/5] w-full max-w-[380px] rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02))] p-5 shadow-[0_35px_120px_rgba(0,0,0,0.6)] backdrop-blur-2xl",
-                  reducedMotion ? "" : "animate-[float_7s_ease-in-out_infinite]",
-                )}
-              >
-                <div className="absolute inset-0 rounded-[2rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.12),transparent_38%),radial-gradient(circle_at_bottom,rgba(0,0,0,0.14),transparent_46%)]" />
-              <div className="relative flex h-full flex-col gap-4 rounded-[1.5rem] border border-white/8 bg-black/50 p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="size-8 rounded-xl bg-black text-white shadow-[0_0_20px_rgba(0,0,0,0.6)] grid place-items-center border border-white/20">
-                      <Bot className="size-4" />
-                    </div>
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.28em] text-white/40">Logicra</p>
-                      <p className="text-sm font-semibold text-white">Live control panel</p>
-                    </div>
-                  </div>
-                  <span className="rounded-full border border-white/30 bg-black/50 px-3 py-1 text-[11px] font-medium text-white">
-                    Online
-                  </span>
-                </div>
-
-                <div className="grid flex-1 gap-3">
-                  <div className="rounded-[1.25rem] border border-white/8 bg-white/[0.035] p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs uppercase tracking-[0.28em] text-white/30">Inference</p>
-                      <p className="text-xs text-white/55">Sub-second</p>
-                    </div>
-                    <div className="mt-4 grid grid-cols-3 gap-3">
-                      {[
-                        ["Chat", "128"],
-                        ["Tasks", "42"],
-                        ["Trust", "94%"],
-                      ].map(([label, value]) => (
-                        <div key={label} className="rounded-[1rem] border border-white/8 bg-black/40 p-3">
-                          <p className="text-[10px] uppercase tracking-[0.28em] text-white/30">{label}</p>
-                          <p className="mt-2 text-2xl font-semibold tracking-[-0.06em] text-white">{value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="flex-1 rounded-[1.25rem] border border-white/8 bg-[linear-gradient(180deg,rgba(0,0,0,0.12),rgba(0,0,0,0.02))] p-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs uppercase tracking-[0.28em] text-white/30">Autonomous mode</p>
-                      <Sparkles className="size-4 text-white" />
-                    </div>
-                    <div className="mt-4 flex flex-col gap-2">
-                      {[
-                        "Researcher collects context",
-                        "Strategist plans the sequence",
-                        "Writer drafts the result",
-                        "System agent hands off to the next step",
-                      ].map((step, index) => (
-                        <div key={step} className="flex items-center gap-3 rounded-[0.95rem] border border-white/8 bg-black/35 px-3 py-2.5 text-sm text-white/72">
-                          <span className="grid size-6 place-items-center rounded-full bg-black text-[11px] font-semibold text-white border border-white/20">
-                            {index + 1}
-                          </span>
-                          <span>{step}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="absolute bottom-4 right-4 rounded-2xl border border-white/10 bg-black/70 px-3 py-2 text-[11px] text-white/65 shadow-[0_18px_40px_rgba(0,0,0,0.35)]">
-                  <div className="flex items-center gap-2">
-                    <span className="size-2 rounded-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.95)]" />
-                    Interactive BG
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BackgroundScene({ pointer, scrollProgress }: { pointer: PointerState; scrollProgress: number }) {
-  const sceneX = pointer.active ? (pointer.x - 50) * 0.28 : 0;
-  const sceneY = pointer.active ? (pointer.y - 50) * 0.22 : 0;
-  const horizonShift = (scrollProgress - 0.5) * 14;
-  const glowShift = 20 + scrollProgress * 12;
+  if (href) {
+    return (
+      <Link href={href} aria-label={label} className={sharedClassName} style={style}>
+        {children}
+      </Link>
+    );
+  }
 
   return (
-    <div className="pointer-events-none fixed inset-0 overflow-hidden">
-      <div
-        className="absolute inset-0 opacity-90 transition-transform duration-300 ease-out"
-        style={{
-          transform: `translate3d(${sceneX}px, ${sceneY}px, 0)`,
-        }}
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(0,0,0,0.08),transparent_26%),radial-gradient(circle_at_12%_74%,rgba(255,255,255,0.04),transparent_18%),radial-gradient(circle_at_88%_76%,rgba(0,0,0,0.06),transparent_18%)]" />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `radial-gradient(circle at 50% ${15 + scrollProgress * 8}%, rgba(0, 0, 0, 0.26), transparent ${glowShift}%), radial-gradient(circle at 18% 18%, rgba(0, 0, 0, 0.14), transparent 18%), radial-gradient(circle at 82% 24%, rgba(255, 255, 255, 0.05), transparent 18%), linear-gradient(180deg, rgba(2, 6, 23, 0.02), rgba(2, 6, 23, 0.4) 56%, rgba(0, 0, 0, 0.95))`,
-          }}
-        />
-
-        <div
-          className="absolute inset-x-[-18%] top-[8%] h-[72vh] opacity-80"
-          style={{
-            transform: `perspective(1600px) translateY(${horizonShift}px) rotateX(74deg) rotateZ(-8deg) scale(1.08)`,
-          }}
-        >
-          <div className="absolute inset-0 rounded-[50%] border border-black/20 bg-[radial-gradient(circle,rgba(0,0,0,0.12),transparent_54%)] shadow-[0_0_180px_rgba(0,0,0,0.12)]" />
-          <div className="absolute inset-4 rounded-[50%] border border-white/10 opacity-60" />
-          <div
-            className="absolute inset-8 rounded-[50%] opacity-70"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)",
-              backgroundSize: "48px 48px",
-              maskImage: "radial-gradient(circle, rgba(0,0,0,0.96), transparent 70%)",
-            }}
-          />
-          <div className="absolute left-1/2 top-1/2 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/14 bg-[radial-gradient(circle,rgba(0,0,0,0.24),rgba(0,0,0,0.06)_38%,transparent_72%)] blur-[24px] animate-[softPulse_10s_ease-in-out_infinite]" />
-        </div>
-
-        <div className="absolute left-[6%] top-[18%] size-32 rounded-full border border-black/26 bg-[radial-gradient(circle,rgba(0,0,0,0.3),rgba(0,0,0,0.08)_52%,transparent_76%)] blur-[3px] animate-[orbitSlow_28s_linear_infinite]" />
-        <div className="absolute right-[10%] top-[14%] size-40 rounded-full border border-white/12 bg-[radial-gradient(circle,rgba(255,255,255,0.16),rgba(255,255,255,0.05)_56%,transparent_74%)] blur-[1px] animate-[orbitSlow_36s_linear_infinite_reverse]" />
-        <div className="absolute left-[48%] top-[9%] h-44 w-44 -translate-x-1/2 rounded-full border border-black/18 bg-[conic-gradient(from_0deg,rgba(0,0,0,0.04),rgba(0,0,0,0.38),rgba(255,255,255,0.05),rgba(0,0,0,0.2),rgba(0,0,0,0.04))] blur-[44px] animate-[softPulse_10s_ease-in-out_infinite]" />
-        <div className="absolute left-[12%] top-[62%] h-[24rem] w-[24rem] rounded-full border border-black/12 bg-[radial-gradient(circle,rgba(0,0,0,0.2),rgba(0,0,0,0.04)_42%,transparent_74%)] blur-[14px] animate-[hoverDrift_16s_ease-in-out_infinite]" />
-        <div className="absolute right-[14%] top-[58%] h-[22rem] w-[22rem] rounded-full border border-white/10 bg-[radial-gradient(circle,rgba(255,255,255,0.12),rgba(255,255,255,0.03)_42%,transparent_74%)] blur-[18px] animate-[hoverDrift_20s_ease-in-out_infinite]" />
-
-        <div className="absolute inset-x-0 bottom-[-8vh] h-[44vh] bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.12)_18%,rgba(0,0,0,0.9)_78%)]" />
-      </div>
-    </div>
+    <button type="button" aria-label={label} onClick={onClick} className={sharedClassName} style={style}>
+      {children}
+    </button>
   );
 }
 
 export function AiAgentLanding() {
-  const [pointer, setPointer] = useState<PointerState>({ x: 50, y: 45, active: false });
-  const heroRef = useRef<HTMLDivElement | null>(null);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  usePointerGlow(heroRef);
-
-  useEffect(() => {
-    const onMove = (event: PointerEvent) => {
-      setPointer({
-        x: clamp((event.clientX / window.innerWidth) * 100, 0, 100),
-        y: clamp((event.clientY / window.innerHeight) * 100, 0, 100),
-        active: true,
-      });
-    };
-    const onLeave = () => setPointer((current) => ({ ...current, active: false }));
-    const onScroll = () => {
-      const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-      setScrollProgress(clamp(window.scrollY / max, 0, 1));
-    };
-
-    window.addEventListener("pointermove", onMove);
-    window.addEventListener("pointerleave", onLeave);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    onScroll();
-
-    return () => {
-      window.removeEventListener("pointermove", onMove);
-      window.removeEventListener("pointerleave", onLeave);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
-
+  const [menuOpen, setMenuOpen] = useState(false);
   const navItems = useMemo(
     () => [
-      { label: "Product", href: "#features" },
-      { label: "Solutions", href: "#stack" },
-      { label: "Pricing", href: "#pricing" },
-      { label: "Docs", href: "/dashboard/chat" },
+      { label: "Chat", href: "/dashboard/chat" },
+      { label: "Agents", href: "/dashboard/orchestrator" },
+      { label: "Model Lab", href: "/dashboard/model-lab" },
+      { label: "Library", href: "/dashboard/library" },
+      { label: "Trust", href: "/dashboard/security" },
     ],
     [],
   );
-  const railItems = useMemo(
-    () => [
-      { id: "hero", label: "Overview", icon: Bot },
-      { id: "features", label: "Features", icon: Workflow },
-      { id: "stack", label: "Live stack", icon: Cpu },
-      { id: "pricing", label: "Pricing", icon: Lock },
-      { id: "workspace", label: "Open workspace", icon: Sparkles, href: "/dashboard/chat" },
-    ],
-    [],
-  );
-  const [activeRailItem, setActiveRailItem] = useState("hero");
-
-  useEffect(() => {
-    const sectionIds = railItems.filter((item) => !item.href).map((item) => item.id);
-
-    const updateActiveSection = () => {
-      const current = sectionIds.reduce(
-        (closest, id) => {
-          const element = document.getElementById(id);
-          if (!element) return closest;
-          const distance = Math.abs(element.getBoundingClientRect().top - 120);
-          return distance < closest.distance ? { id, distance } : closest;
-        },
-        { id: "hero", distance: Number.POSITIVE_INFINITY },
-      );
-
-      setActiveRailItem(current.id);
-    };
-
-    updateActiveSection();
-    window.addEventListener("scroll", updateActiveSection, { passive: true });
-    window.addEventListener("resize", updateActiveSection);
-
-    return () => {
-      window.removeEventListener("scroll", updateActiveSection);
-      window.removeEventListener("resize", updateActiveSection);
-    };
-  }, [railItems]);
-
-  function scrollToSection(id: string) {
-    setActiveRailItem(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[#020203] text-white">
-      <BackgroundScene pointer={pointer} scrollProgress={scrollProgress} />
+    <main className="relative flex h-screen min-h-[640px] overflow-hidden bg-black text-white">
+      <video
+        className="fixed inset-0 z-0 h-full w-full object-cover"
+        src={videoUrl}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+      />
 
-      <div className="fixed left-3 top-1/2 z-30 hidden -translate-y-1/2 lg:flex">
-        <div className="flex flex-col gap-2 rounded-[1.75rem] border border-white/10 bg-black/70 p-2 backdrop-blur-xl">
-          {railItems.map(({ id, label, icon: Icon, href }) => {
-            const isActive = activeRailItem === id;
-            const className = cn(
-              "grid size-10 place-items-center rounded-2xl border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-black",
-              isActive
-                ? "border-white/35 bg-white/12 text-white"
-                : "border-white/8 bg-white/[0.03] text-white/55 hover:border-white/25 hover:bg-white/10 hover:text-white",
-            );
+      <div className="pointer-events-none fixed inset-0 z-[1] backdrop-blur-xl [mask-image:linear-gradient(to_top,black_0%,transparent_45%)] [-webkit-mask-image:linear-gradient(to_top,black_0%,transparent_45%)]" />
 
-            if (href) {
-              return (
-                <Link key={id} href={href} aria-label={label} title={label} className={className}>
-                  <Icon className="size-4" />
-                </Link>
-              );
-            }
+      <div className="relative z-10 flex h-full w-full flex-col">
+        <header className="relative z-50 flex items-center justify-between px-4 py-4 sm:px-6 md:px-12 md:py-6">
+          <Link
+            href="/"
+            className="animate-blur-fade-up flex h-8 items-center text-lg font-semibold tracking-[0.24em] text-white md:h-10 md:text-xl"
+            style={animationDelay(0)}
+          >
+            LOGICRA
+          </Link>
 
-            return (
-              <button
-                key={id}
-                type="button"
-                aria-label={label}
-                aria-current={isActive ? "true" : undefined}
-                title={label}
-                onClick={() => scrollToSection(id)}
-                className={className}
+          <nav className="hidden items-center gap-8 lg:flex">
+            {navItems.map((item, index) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="animate-blur-fade-up text-sm text-white transition-colors hover:text-gray-300"
+                style={animationDelay(100 + index * 50)}
               >
-                <Icon className="size-4" />
-              </button>
-            );
-          })}
-        </div>
-      </div>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
 
-      <div className="pointer-events-none fixed inset-0 animate-[sceneShift_24s_ease-in-out_infinite] bg-[radial-gradient(circle_at_50%_0%,rgba(0,0,0,0.16),transparent_18%),radial-gradient(circle_at_15%_22%,rgba(0,0,0,0.11),transparent_22%),radial-gradient(circle_at_85%_25%,rgba(255,255,255,0.05),transparent_18%)]" />
-      <div className="pointer-events-none fixed inset-0 bg-[linear-gradient(transparent_0%,rgba(255,255,255,0.035)_1px),linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.035)_1px)] bg-[size:22px_22px] opacity-28" />
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_20%,transparent_0%,rgba(0,0,0,0.18)_52%,rgba(0,0,0,0.84)_100%)]" />
+          <div className="flex items-center gap-3">
+            <LiquidButton
+              href="/dashboard/chat"
+              className="animate-blur-fade-up hidden px-4 py-2 sm:inline-flex md:px-6"
+              style={animationDelay(350)}
+            >
+              Search
+              <Search size={18} />
+            </LiquidButton>
+            <LiquidButton
+              href="/dashboard/account"
+              label="Open profile"
+              className="animate-blur-fade-up hidden h-10 w-10 sm:inline-flex"
+              style={animationDelay(400)}
+            >
+              <User size={18} />
+            </LiquidButton>
+            <button
+              type="button"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+              className="liquid-glass animate-blur-fade-up relative grid h-10 w-10 place-items-center rounded-full text-white lg:hidden"
+              style={animationDelay(350)}
+            >
+              <Menu
+                size={20}
+                className={cn(
+                  "absolute transition-all duration-500 ease-out",
+                  menuOpen ? "rotate-180 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100",
+                )}
+              />
+              <X
+                size={20}
+                className={cn(
+                  "absolute transition-all duration-500 ease-out",
+                  menuOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-180 scale-50 opacity-0",
+                )}
+              />
+            </button>
+          </div>
 
-      <div className="relative mx-auto max-w-[1480px] px-3 py-3 sm:px-4 lg:px-6">
-        <header className="sticky top-3 z-40 rounded-[1.25rem] border border-white/8 bg-black/65 px-4 py-3 backdrop-blur-xl">
-          <div className="flex items-center gap-4">
-            <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight text-white">
-              <div className="grid size-8 place-items-center rounded-xl bg-black text-white shadow-[0_0_18px_rgba(0,0,0,0.55)] border border-white/20">
-                <Bot className="size-4" />
-              </div>
-              <span>Logicra</span>
-            </Link>
-
-            <nav className="hidden flex-1 items-center justify-center gap-8 text-sm text-white/55 md:flex">
-              {navItems.map((item) => (
-                <Link key={item.label} href={item.href} className="transition-colors hover:text-white">
+          <div
+            className={cn(
+              "absolute left-0 right-0 top-[72px] z-40 bg-gray-900/95 px-4 py-4 shadow-2xl backdrop-blur-lg transition-all duration-500 ease-out sm:px-6 lg:hidden",
+              "border-y border-gray-800",
+              menuOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-4 opacity-0",
+            )}
+          >
+            <nav className="flex flex-col">
+              {navItems.map((item, index) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={cn(
+                    "rounded-lg px-3 py-3 text-sm text-white transition-all duration-500 ease-out hover:bg-gray-800/50",
+                    menuOpen ? "translate-x-0 opacity-100" : "-translate-x-3 opacity-0",
+                  )}
+                  style={{ transitionDelay: menuOpen ? `${index * 50}ms` : "0ms" }}
+                >
                   {item.label}
                 </Link>
               ))}
             </nav>
-
-            <div className="ml-auto flex items-center gap-2">
-              <Button variant="ghost" className="hidden rounded-full px-4 text-white/70 hover:bg-white/5 hover:text-white sm:inline-flex" asChild>
-                <Link href="/auth/sign-in">Log in</Link>
-              </Button>
-              <Button className="rounded-full bg-black px-5 font-semibold text-white shadow-[0_12px_30px_rgba(0,0,0,0.3)] hover:bg-gray-900 border border-white/20" asChild>
-                <Link href="/auth/sign-up">Sign Up</Link>
-              </Button>
+            <div className="mt-3 grid grid-cols-2 gap-3 border-t border-gray-800 pt-4 sm:hidden">
+                <LiquidButton href="/dashboard/chat" className="px-4 py-2.5">
+                  Search
+                  <Search size={18} />
+              </LiquidButton>
+                <LiquidButton href="/dashboard/account" className="px-4 py-2.5">
+                  Profile
+                  <User size={18} />
+              </LiquidButton>
             </div>
           </div>
         </header>
 
-        <section
-          id="hero"
-          ref={heroRef}
-          className="relative mx-auto mt-4 overflow-hidden rounded-[2rem] border border-white/8 bg-[linear-gradient(180deg,rgba(255,255,255,0.03),rgba(255,255,255,0.01))] px-4 py-6 shadow-[0_24px_90px_rgba(0,0,0,0.55)] sm:px-6 lg:px-8"
-        >
-          <div className="flex items-start justify-between gap-3 pb-5 text-xs text-white/45">
-            <span className="inline-flex items-center gap-2">
-              <span className="size-1.5 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.95)]" />
-              Logicra Interactive Landing
-            </span>
-            <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-white/55">
-              {scrollProgress > 0.75 ? "3.5" : "Live"}
-            </span>
-          </div>
-
-          <HeroCanvas pointer={pointer} />
-        </section>
-
-        <section id="features" className="mt-8 grid gap-4 md:grid-cols-3">
-          <GlassCard
-            icon={Workflow}
-            title="Autonomous orchestration"
-            description="Agents coordinate research, writing, and execution with visible handoffs and checkpointed approvals."
-          />
-          <GlassCard
-            icon={Cpu}
-            title="Generative UI"
-            description="The interface adapts to the task, surfacing analytics, context, and actions only when they matter."
-          />
-          <GlassCard
-            icon={Lock}
-            title="Zero-trust by default"
-            description="MCP access, safety checks, and desktop bridges stay scoped and observable across the workspace."
-          />
-        </section>
-
-        <section id="stack" className="mt-8 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="rounded-[1.8rem] border border-white/8 bg-white/[0.03] p-6 backdrop-blur-xl">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.32em] text-white/35">Live stack</p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-[-0.05em] sm:text-3xl">Built for agents, context, and control.</h2>
-              </div>
-              <div className="rounded-full border border-white/20 bg-black/50 px-3 py-1 text-xs text-white">
-                Connected
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-[1.25rem] border border-white/8 bg-black/35 p-4">
-                <p className="text-xs uppercase tracking-[0.28em] text-white/30">Telemetry</p>
-                <div className="mt-3 flex items-end gap-2">
-                  {[34, 58, 44, 72, 84, 66, 92].map((value, index) => (
-                    <div key={index} className="flex-1">
-                      <div
-                        className="rounded-t-xl bg-white/80 shadow-[0_0_18px_rgba(255,255,255,0.25)]"
-                        style={{ height: `${value}px` }}
-                      />
-                    </div>
-                  ))}
-                </div>
+        <section className="relative z-10 flex flex-1 flex-col justify-end px-4 pb-8 sm:px-6 md:px-12 md:pb-16">
+          <div className="flex flex-col items-start gap-8 md:flex-row md:items-end md:justify-between">
+            <div className="max-w-4xl flex-1">
+              <div
+                className="animate-blur-fade-up mb-6 flex flex-wrap items-center gap-3 text-xs text-white sm:gap-6 sm:text-sm md:mb-8"
+                style={animationDelay(300)}
+              >
+                <span className="inline-flex items-center gap-2 font-medium">
+                  <Star size={16} className="fill-white sm:h-5 sm:w-5" />
+                  98% TASK CLARITY
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <Clock size={16} className="sm:h-5 sm:w-5" />
+                  Always-on agents
+                </span>
+                <span className="inline-flex items-center gap-2">
+                  <Calendar size={16} className="sm:h-5 sm:w-5" />
+                  May, 2026
+                </span>
               </div>
 
-              <div className="rounded-[1.25rem] border border-white/8 bg-black/35 p-4">
-                <p className="text-xs uppercase tracking-[0.28em] text-white/30">Agent mode</p>
-                <div className="mt-3 space-y-2 text-sm text-white/70">
-                  <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">Researcher to Strategist</div>
-                  <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">Strategist to Writer</div>
-                  <div className="rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2">Writer to Approval</div>
-                </div>
+              <h1
+                className="animate-blur-fade-up mb-4 max-w-4xl text-3xl font-normal leading-[0.94] tracking-[-0.04em] text-white sm:text-5xl md:mb-6 md:text-6xl lg:text-7xl"
+                style={animationDelay(400)}
+              >
+                Command Every Agent. Work Smarter.
+              </h1>
+
+              <p
+                className="animate-blur-fade-up mb-6 max-w-2xl text-base leading-7 text-gray-400 sm:text-lg md:mb-12 md:text-xl"
+                style={animationDelay(500)}
+              >
+                A cinematic AI workspace where conversations, memory, automation, and trust signals move in one focused command layer.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+                <Link
+                  href="/auth/sign-up"
+                  className="animate-blur-fade-up inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-medium text-black transition-colors hover:bg-gray-200 sm:px-8 sm:py-3"
+                  style={animationDelay(600)}
+                >
+                  <Play size={18} className="fill-black" />
+                  Start Now
+                </Link>
+                <LiquidButton
+                  href="/contact"
+                  className="animate-blur-fade-up px-6 py-2.5 sm:px-8 sm:py-3"
+                  style={animationDelay(700)}
+                >
+                  Learn More
+                </LiquidButton>
               </div>
             </div>
-          </div>
 
-          <div className="rounded-[1.8rem] border border-white/8 bg-[linear-gradient(180deg,rgba(0,0,0,0.14),rgba(0,0,0,0.03))] p-6 backdrop-blur-xl">
-            <p className="text-xs uppercase tracking-[0.32em] text-white">Outcome</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.05em] sm:text-3xl">A premium surface for real work, not just demos.</h2>
-            <p className="mt-4 text-sm leading-7 text-white/66">
-              Logicra blends orchestration, MCP context, analytics, and desktop bridges into one calm system that feels fast on desktop and focused on mobile.
-            </p>
-            <div className="mt-6 space-y-3">
-              <div className="rounded-[1.1rem] border border-white/10 bg-black/35 px-4 py-3 text-sm text-white/72">Live analysis stream</div>
-              <div className="rounded-[1.1rem] border border-white/10 bg-black/35 px-4 py-3 text-sm text-white/72">Desktop agent runbooks</div>
-              <div className="rounded-[1.1rem] border border-white/10 bg-black/35 px-4 py-3 text-sm text-white/72">MCP-native workspace context</div>
+            <div className="flex w-full items-center gap-3 md:w-auto md:justify-end">
+              <LiquidButton
+                href="/dashboard/library"
+                className="animate-blur-fade-up px-4 py-2.5 sm:px-6 sm:py-3"
+                style={animationDelay(800)}
+              >
+                <ChevronLeft size={18} />
+                Library
+              </LiquidButton>
+              <LiquidButton
+                href="/dashboard/chat"
+                className="animate-blur-fade-up px-4 py-2.5 sm:px-6 sm:py-3"
+                style={animationDelay(900)}
+              >
+                Chat
+                <ChevronRight size={18} />
+              </LiquidButton>
             </div>
-          </div>
-        </section>
-
-        <section id="pricing" className="mt-8 rounded-[1.8rem] border border-white/8 bg-white/[0.03] p-6 backdrop-blur-xl">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-[0.32em] text-white/35">Pricing</p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-[-0.05em] sm:text-3xl">Outcome-based, team-friendly, and built to scale.</h2>
-            </div>
-            <Link href="/dashboard/chat" className="inline-flex items-center gap-2 text-sm font-semibold text-white">
-              Open workspace <ArrowRight className="size-4" />
-            </Link>
-          </div>
-          <div className="mt-5 grid gap-3 md:grid-cols-3">
-            {[
-              ["$0 platform", "Start free and see value immediately."],
-              ["Pay per success", "Bill only when the system finishes the task."],
-              ["Enterprise trust", "Security and audit trails remain visible."],
-            ].map(([title, description]) => (
-              <div key={title} className="rounded-[1.25rem] border border-white/8 bg-black/35 p-4">
-                <p className="text-sm font-semibold">{title}</p>
-                <p className="mt-2 text-sm leading-6 text-white/60">{description}</p>
-              </div>
-            ))}
           </div>
         </section>
       </div>
 
-      <style jsx global>{`
-        @keyframes float {
-          0%,
-          100% {
-            transform: translateY(0px);
-          }
-          50% {
-            transform: translateY(-8px);
-          }
-        }
-
-        @keyframes orbitSlow {
-          0% {
-            transform: translate3d(0, 0, 0) scale(1);
-          }
-          50% {
-            transform: translate3d(24px, -18px, 0) scale(1.08);
-          }
-          100% {
-            transform: translate3d(0, 0, 0) scale(1);
-          }
-        }
-
-        @keyframes softPulse {
-          0%,
-          100% {
-            opacity: 0.42;
-            transform: translateX(-50%) scale(1);
-          }
-          50% {
-            opacity: 0.76;
-            transform: translateX(-50%) scale(1.07);
-          }
-        }
-
-        @keyframes hoverDrift {
-          0%,
-          100% {
-            transform: translateX(-50%) translateY(0px);
-          }
-          50% {
-            transform: translateX(-50%) translateY(-14px);
-          }
-        }
-
-        @keyframes sceneShift {
-          0%,
-          100% {
-            background-position:
-              0% 0%,
-              100% 0%,
-              50% 100%;
-          }
-          50% {
-            background-position:
-              12% 8%,
-              88% 12%,
-              52% 100%;
-          }
-        }
-      `}</style>
     </main>
   );
 }
