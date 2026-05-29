@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import {
@@ -75,8 +76,27 @@ export function AiAgentLanding() {
 
   return (
     <main className="relative flex h-screen min-h-[640px] overflow-hidden bg-black text-white">
+      <div className="fixed inset-0 z-0 overflow-hidden bg-[radial-gradient(circle_at_18%_26%,rgba(255,255,255,0.22),transparent_18%),radial-gradient(circle_at_78%_18%,rgba(59,130,246,0.28),transparent_20%),radial-gradient(circle_at_64%_78%,rgba(20,184,166,0.24),transparent_24%),linear-gradient(135deg,#05070d_0%,#101827_42%,#030406_100%)]">
+        <Image
+          src="/hero-neon-chat.svg"
+          alt=""
+          aria-hidden="true"
+          width={720}
+          height={480}
+          className="absolute right-[6vw] top-1/2 w-[min(48vw,720px)] -translate-y-1/2 opacity-70 mix-blend-screen"
+        />
+        <Image
+          src="/hero-hologram-network.svg"
+          alt=""
+          aria-hidden="true"
+          width={520}
+          height={520}
+          className="absolute left-[48vw] top-[8vh] w-[min(34vw,520px)] opacity-55 mix-blend-screen"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.72)_0%,rgba(0,0,0,0.28)_48%,rgba(0,0,0,0.05)_100%)]" />
+      </div>
       <video
-        className="fixed inset-0 z-0 h-full w-full object-cover"
+        className="fixed inset-0 z-[1] h-full w-full object-cover opacity-80"
         src={videoUrl}
         autoPlay
         muted
@@ -85,7 +105,7 @@ export function AiAgentLanding() {
         aria-hidden="true"
       />
 
-      <div className="pointer-events-none fixed inset-0 z-[1] backdrop-blur-xl [mask-image:linear-gradient(to_top,black_0%,transparent_45%)] [-webkit-mask-image:linear-gradient(to_top,black_0%,transparent_45%)]" />
+      <div className="pointer-events-none fixed inset-0 z-[2] backdrop-blur-xl [mask-image:linear-gradient(to_top,black_0%,transparent_45%)] [-webkit-mask-image:linear-gradient(to_top,black_0%,transparent_45%)]" />
 
       <div className="relative z-10 flex h-full w-full flex-col">
         <header className="relative z-50 flex items-center justify-between px-4 py-4 sm:px-6 md:px-12 md:py-6">
