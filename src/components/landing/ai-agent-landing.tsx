@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 
+import { AgentHeroScene } from "@/components/landing/agent-hero-scene";
 import { cn } from "@/lib/utils";
 
 const videoUrl =
@@ -106,6 +107,7 @@ export function AiAgentLanding() {
       />
 
       <div className="pointer-events-none fixed inset-0 z-[2] backdrop-blur-xl [mask-image:linear-gradient(to_top,black_0%,transparent_45%)] [-webkit-mask-image:linear-gradient(to_top,black_0%,transparent_45%)]" />
+      <AgentHeroScene />
 
       <div className="relative z-10 flex h-full w-full flex-col">
         <header className="relative z-50 flex items-center justify-between px-4 py-4 sm:px-6 md:px-12 md:py-6">
@@ -230,10 +232,11 @@ export function AiAgentLanding() {
               </div>
 
               <h1
-                className="animate-blur-fade-up mb-4 max-w-4xl text-3xl font-normal leading-[0.94] tracking-[-0.04em] text-white sm:text-5xl md:mb-6 md:text-6xl lg:text-7xl"
+                className="animate-blur-fade-up mb-4 max-w-3xl text-3xl font-normal leading-[0.94] tracking-[-0.04em] text-white sm:text-5xl md:mb-6 md:text-6xl lg:text-7xl"
                 style={animationDelay(400)}
               >
-                Command Every Agent. Work Smarter.
+                Command Agents.
+                <span className="block">Work Smarter.</span>
               </h1>
 
               <p
