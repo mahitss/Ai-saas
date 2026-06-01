@@ -9,6 +9,8 @@ const responseCache = new Map<string, { reply: string; model: string; createdAt:
 const usageByUser = new Map<string, UsageSnapshot>();
 
 const CACHE_TTL_MS = 1000 * 60 * 30;
+const MAX_CACHE_ENTRIES = 500;
+const MAX_USAGE_ENTRIES = 5_000;
 
 export function buildCacheKey(input: {
   assistant: string;
@@ -25,6 +27,7 @@ export function buildCacheKey(input: {
 }
 
 export function readCachedReply(key: string) {
+  pruneResponseCache();
   const entry = responseCache.get(key);
   if (!entry) return null;
   if (Date.now() - entry.createdAt > CACHE_TTL_MS) {
@@ -35,7 +38,31 @@ export function readCachedReply(key: string) {
 }
 
 export function writeCachedReply(key: string, reply: string, model: string) {
+  pruneResponseCache();
   responseCache.set(key, { reply, model, createdAt: Date.now() });
+}
+
+function pruneResponseCache() {
+  const now = Date.now();
+  for (const [key, entry] of responseCache) {
+    if (now - entry.createdAt > CACHE_TTL_MS) responseCache.delete(key);
+  }
+  if (responseCache.size <= MAX_CACHE_ENTRIES) return;
+  for (const key of responseCache.keys()) {
+    responseCache.delete(key);
+    if (responseCache.size <= MAX_CACHE_ENTRIES) break;
+  }
+}
+
+function pruneUsageSnapshots(currentPeriod: string) {
+  for (const [userId, snapshot] of usageByUser) {
+    if (snapshot.periodStart !== currentPeriod) usageByUser.delete(userId);
+  }
+  if (usageByUser.size <= MAX_USAGE_ENTRIES) return;
+  for (const userId of usageByUser.keys()) {
+    usageByUser.delete(userId);
+    if (usageByUser.size <= MAX_USAGE_ENTRIES) break;
+  }
 }
 
 export function chooseModelRoute(params: {
@@ -73,8 +100,9 @@ export function chooseModelRoute(params: {
 
 export function trackUsage(params: { userId: string; prompt: string; reply: string }) {
   const estimatedTokens = Math.ceil((params.prompt.length + params.reply.length) / 4);
-  const existing = usageByUser.get(params.userId);
   const today = new Date().toISOString().slice(0, 10);
+  pruneUsageSnapshots(today);
+  const existing = usageByUser.get(params.userId);
   const base: UsageSnapshot =
     existing && existing.periodStart === today
       ? existing
@@ -87,6 +115,7 @@ export function trackUsage(params: { userId: string; prompt: string; reply: stri
 
 export function getUsageForecast(userId: string) {
   const today = new Date().toISOString().slice(0, 10);
+  pruneUsageSnapshots(today);
   const snap =
     usageByUser.get(userId) ??
     ({

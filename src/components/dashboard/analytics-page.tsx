@@ -1,22 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-
-const weeklyHours = [2, 3, 4, 5, 6, 7, 8];
-const tokenUsage = [900, 1200, 1400, 3900, 1800, 1700, 1600];
-const sentimentHeat = [
-  [0.8, 0.7, 0.6, 0.5],
-  [0.65, 0.72, 0.78, 0.81],
-  [0.44, 0.51, 0.58, 0.68],
-  [0.9, 0.82, 0.76, 0.7],
-  [0.55, 0.62, 0.74, 0.84],
-  [0.42, 0.58, 0.63, 0.71],
-  [0.61, 0.67, 0.72, 0.79],
-];
 
 type LiveAnalysisSnapshot = {
   generatedAt: string;

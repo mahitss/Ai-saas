@@ -79,7 +79,7 @@ export function useRealtimeConnection(options: UseRealtimeConnectionOptions = {}
           }, reconnectInterval);
         }
       };
-    } catch (err) {
+    } catch {
       setError("Failed to establish connection");
       updateStatus("offline");
     }

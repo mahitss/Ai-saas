@@ -8,8 +8,6 @@ import {
   Bot,
   BookOpen,
   Brain,
-  ChevronLeft,
-  ChevronRight,
   Command,
   Cpu,
   GalleryVerticalEnd,

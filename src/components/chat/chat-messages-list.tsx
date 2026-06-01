@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowDown, Check, CheckCheck, MessageSquarePlus, MoreHorizontal } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -155,7 +155,6 @@ export function ChatMessagesList({
             >
               {/* Avatar */}
               <Avatar className="h-8 w-8 flex-shrink-0">
-                <AvatarImage src="" alt="" />
                 <AvatarFallback className="text-xs">
                   {message.role === "user" ? "U" : "AI"}
                 </AvatarFallback>

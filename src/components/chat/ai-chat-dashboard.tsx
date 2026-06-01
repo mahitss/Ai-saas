@@ -78,9 +78,8 @@ export function AiChatDashboard({ user }: { user: User }) {
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [sending, setSending] = useState(false);
-  const [selectedAssistant, setSelectedAssistant] = useState<"chatgpt" | "gemini" | "auto">("auto");
+  const [selectedAssistant] = useState<"chatgpt" | "gemini" | "auto">("auto");
   const [cameraEnabled, setCameraEnabled] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [pendingFiles, setPendingFiles] = useState<File[]>([]);
   const [pendingPreviews, setPendingPreviews] = useState<Array<{ name: string; mimeType: string; previewUrl: string; size: number }>>([]);
 
@@ -268,7 +267,8 @@ export function AiChatDashboard({ user }: { user: User }) {
   }, []);
 
   // Message handlers
-  const handleSendMessage = useCallback(async (message: string, imageDataUrl?: string, attachments?: File[]) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleSendMessage = useCallback(async (message: string, imageDataUrl?: string, _attachments?: File[]) => {
     if (!message.trim() || sending) return;
 
     setSending(true);
@@ -462,7 +462,7 @@ export function AiChatDashboard({ user }: { user: User }) {
         });
       }
       toast.success("Files attached and staged for chat sharing.");
-    } catch (error) {
+    } catch {
       toast.error("Unable to upload files");
     }
   }, []);
@@ -555,7 +555,7 @@ export function AiChatDashboard({ user }: { user: User }) {
       } else {
         toast.error("Unable to generate explanation log.");
       }
-    } catch (error) {
+    } catch {
       toast.error("Unable to generate explanation log.");
     }
   }, [activeConversation, selectedAssistant]);

@@ -12,6 +12,7 @@ import {
   chatThreadReply,
   chatUpload,
 } from "@/db/schema";
+import { logger } from "@/lib/server/logger";
 
 type PresenceStatus = "online" | "away" | "offline";
 
@@ -131,8 +132,8 @@ function pushToListeners(userId: string, event: RealtimeEvent) {
   for (const listener of listeners) {
     try {
       listener(event);
-    } catch {
-      // Keep other live clients connected if one subscriber fails.
+    } catch (error) {
+      logger.error("Realtime listener failed", { userId, eventType: event.type, error });
     }
   }
 }
@@ -237,6 +238,7 @@ export async function setPresence(userId: string, status: PresenceStatus, typing
       set: { status, lastSeenAt, typingConversationId, typing, updatedAt },
     })
     .returning();
+  if (!row) throw new Error("Failed to upsert presence");
   const presence = mapPresence(row);
   pushToListeners(userId, { type: "presence", presence });
   return presence;
@@ -277,6 +279,8 @@ export async function markMessageRead(messageId: string, userId: string) {
     .values({ messageId, userId, sentAt, deliveredAt, readAt })
     .onConflictDoUpdate({ target: chatReceipt.messageId, set: { deliveredAt, readAt } })
     .returning();
+
+  if (!row) throw new Error("Failed to create receipt");
   const receipt = mapReceipt(row);
   pushToListeners(userId, { type: "receipt", receipt });
   return receipt;
@@ -305,6 +309,7 @@ export async function addNotification(
       readAt: safeDate(notification.readAt),
     })
     .returning();
+  if (!row) throw new Error("Failed to create notification");
   const next = mapNotification(row);
   pushToListeners(userId, { type: "notification", notification: next });
   return next;
@@ -335,6 +340,7 @@ export async function addUpload(userId: string, upload: Omit<ChatUpload, "id" | 
       createdAt: new Date(),
     })
     .returning();
+  if (!row) throw new Error("Failed to create upload");
   const next = { ...row, expiresAt: row.expiresAt.toISOString(), createdAt: row.createdAt.toISOString() };
   pushToListeners(userId, { type: "upload", upload: next });
   return next;
@@ -350,6 +356,7 @@ export async function addAuditLog(userId: string, audit: Omit<ChatAuditLog, "id"
     .insert(chatAuditLog)
     .values({ ...audit, id: crypto.randomUUID(), userId, createdAt: new Date() })
     .returning();
+  if (!row) throw new Error("Failed to create audit log");
   const next = { ...row, createdAt: row.createdAt.toISOString() };
   pushToListeners(userId, { type: "audit", audit: next });
   return next;
@@ -379,6 +386,7 @@ export async function addReaction(userId: string, messageId: string, emoji: stri
     .insert(chatReaction)
     .values({ id: crypto.randomUUID(), messageId, userId, emoji, createdAt: new Date() })
     .returning();
+  if (!row) throw new Error("Failed to create reaction");
   const reaction = { ...row, createdAt: row.createdAt.toISOString() };
   pushToListeners(userId, { type: "reaction", reaction });
   await addAuditLog(userId, { action: "reaction", targetType: "message", targetId: messageId, detail: emoji });
@@ -395,6 +403,7 @@ export async function addThreadReply(userId: string, messageId: string, content:
     .insert(chatThreadReply)
     .values({ id: crypto.randomUUID(), messageId, userId, content, createdAt: new Date() })
     .returning();
+  if (!row) throw new Error("Failed to create thread reply");
   const reply = { ...row, createdAt: row.createdAt.toISOString() };
   pushToListeners(userId, { type: "thread_reply", reply });
   return reply;
@@ -418,6 +427,7 @@ export async function addIntegration(userId: string, provider: ChatIntegrationLi
     .insert(chatIntegrationLink)
     .values({ id: crypto.randomUUID(), userId, provider, target, status: "connected", createdAt: new Date(), updatedAt: new Date() })
     .returning();
+  if (!row) throw new Error("Failed to create integration");
   return mapIntegration(row);
 }
 
@@ -437,6 +447,7 @@ export async function createCallSession(userId: string, session: Omit<ChatCallSe
       updatedAt: new Date(),
     })
     .returning();
+  if (!row) throw new Error("Failed to create call session");
   return mapCallSession(row);
 }
 

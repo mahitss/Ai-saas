@@ -20,7 +20,7 @@ export interface UsePresenceOptions {
 }
 
 export function usePresence(options: UsePresenceOptions) {
-  const { userId, conversationId, onPresenceUpdate } = options;
+  const { conversationId, onPresenceUpdate } = options;
   const [presence, setPresence] = useState<PresenceData | null>(null);
   const [isTyping, setIsTyping] = useState(false);
 

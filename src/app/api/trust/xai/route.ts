@@ -77,6 +77,9 @@ export async function POST(request: Request) {
       })
       .returning();
 
+    if (!log) {
+      return NextResponse.json({ error: "Failed to create xAI log" }, { status: 500 });
+    }
     return NextResponse.json({ log: { ...log, sources: parsed.data.sources, complianceFlags: parsed.data.complianceFlags }, storage: "database" }, { status: 201 });
   } catch (error) {
     if (!isMissingTableError(error)) {

@@ -244,10 +244,9 @@ export async function generateAssistantReply(params: {
     }
 
     const availableModels = await listGeminiGenerateModels(apiKey);
-    const preferred = route.complexity === "high"
-      ? ["models/gemini-1.5-pro-latest", "models/gemini-2.5-flash", "models/gemini-2.0-flash"]
-      : ["models/gemini-2.5-flash", "models/gemini-2.0-flash", "models/gemini-1.5-flash-latest", "models/gemini-1.5-flash"];
-    const fallback = ["models/gemini-2.0-flash", "models/gemini-1.5-flash-latest"];
+    const configuredModel = env.GEMINI_MODEL?.trim();
+    const preferred = configuredModel ? [`models/${configuredModel.replace(/^models\//, "")}`] : ["models/gemini-2.0-flash"];
+    const fallback = preferred;
     const models = (availableModels.length > 0
       ? [...preferred.filter((name) => availableModels.includes(name)), ...availableModels]
       : fallback
@@ -333,7 +332,7 @@ export async function generateAssistantReply(params: {
       };
     }
 
-    const models = ["gpt-4.1-mini", "gpt-4o-mini"];
+    const models = [env.OPENAI_MODEL?.trim() || "gpt-4o-mini"];
     let lastError = "Unknown provider error";
 
     const input = [

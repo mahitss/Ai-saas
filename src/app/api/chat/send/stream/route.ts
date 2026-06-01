@@ -42,18 +42,28 @@ function chunkText(text: string) {
 
 export async function POST(request: Request) {
   const encoder = new TextEncoder();
+  const abortSignal = request.signal;
+  let closed = false;
 
   const stream = new ReadableStream({
     async start(controller) {
       const send = (event: string, data: unknown) => {
+        if (closed || abortSignal.aborted) return;
         controller.enqueue(encoder.encode(encodeEvent(event, data)));
       };
+      const close = () => {
+        if (closed) return;
+        closed = true;
+        controller.close();
+      };
+      const abort = () => close();
+      abortSignal.addEventListener("abort", abort, { once: true });
 
       try {
         const user = await getAuthenticatedUser();
         if (!user) {
           send("error", { error: "Unauthorized" });
-          controller.close();
+          close();
           return;
         }
 
@@ -61,7 +71,7 @@ export async function POST(request: Request) {
         const parsed = sendMessageSchema.safeParse(body);
         if (!parsed.success) {
           send("error", { error: "Invalid chat payload" });
-          controller.close();
+          close();
           return;
         }
 
@@ -75,7 +85,7 @@ export async function POST(request: Request) {
             .limit(1);
           if (!existing) {
             send("error", { error: "Conversation not found" });
-            controller.close();
+            close();
             return;
           }
         } else {
@@ -134,6 +144,7 @@ export async function POST(request: Request) {
         });
 
         for (const chunk of chunkText(aiResult.reply)) {
+          if (abortSignal.aborted) return;
           send("assistant-delta", { id: assistantId, delta: chunk });
           await new Promise((resolve) => setTimeout(resolve, 12));
         }
@@ -167,12 +178,18 @@ export async function POST(request: Request) {
           memorySummary: aiResult.memorySummary,
           metadata: aiResult.metadata ?? null,
         });
-        controller.close();
+        close();
       } catch (error) {
+        if (abortSignal.aborted) return;
         const message = error instanceof Error ? error.message : "Unexpected server error";
         send("error", { error: `Chat backend failed: ${message}` });
-        controller.close();
+        close();
+      } finally {
+        abortSignal.removeEventListener("abort", abort);
       }
+    },
+    cancel() {
+      closed = true;
     },
   });
 

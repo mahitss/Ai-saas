@@ -82,6 +82,9 @@ export async function POST(request: Request) {
           .join("\n\n"),
       })
       .returning();
+    if (!userMessage) {
+      return NextResponse.json({ error: "Failed to persist user message" }, { status: 500 });
+    }
     const userReceipt = await markMessageSent(userMessage.id, user.id);
 
     const aiResult = await generateAssistantReply({
@@ -102,6 +105,9 @@ export async function POST(request: Request) {
         content: aiResult.reply,
       })
       .returning();
+    if (!assistantMessage) {
+      return NextResponse.json({ error: "Failed to persist assistant message" }, { status: 500 });
+    }
     const assistantReceipt = await markMessageSent(assistantMessage.id, user.id);
     await markMessageRead(userMessage.id, user.id);
     await markMessageRead(assistantMessage.id, user.id);

@@ -105,6 +105,7 @@ export async function POST(request: Request) {
         .set({ plan: nextPlan, monthlyFeeCents, standardUnlimited, proCallsIncluded, updatedAt: new Date() })
         .where(eq(billingProfile.userId, user.id))
         .returning();
+      if (!profile) throw new Error("Failed to update billing profile");
     }
 
     if (parsed.data.action === "refill") {
@@ -115,6 +116,7 @@ export async function POST(request: Request) {
         .set({ creditsRemaining: profile.creditsRemaining + credits, updatedAt: new Date() })
         .where(eq(billingProfile.userId, user.id))
         .returning();
+      if (!profile) throw new Error("Failed to update billing profile");
       await db.insert(billingTransaction).values({
         id: crypto.randomUUID(),
         userId: user.id,
@@ -135,6 +137,7 @@ export async function POST(request: Request) {
         })
         .where(eq(billingProfile.userId, user.id))
         .returning();
+      if (!profile) throw new Error("Failed to update billing profile");
     }
 
     if (parsed.data.action === "outcome_bonus") {

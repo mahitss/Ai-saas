@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, ne } from "drizzle-orm";
+import { and, count, desc, eq, gte } from "drizzle-orm";
 
 import { db } from "@/db";
 import { aiConversation, aiMessage, project, projectTask } from "@/db/schema";
@@ -31,14 +31,14 @@ export type LiveAnalysisSnapshot = {
     secureSessionToken: string;
     lastUsedAt: string;
   } | null;
-    source: "database" | "fallback_memory";
-    weekly: {
-      days: string[];
-      messages: number[];
-      tasks: number[];
-      engagement: number[];
-    };
+  source: "database" | "fallback_memory";
+  weekly: {
+    days: string[];
+    messages: number[];
+    tasks: number[];
+    engagement: number[];
   };
+};
 
 
 export type SystemAgentRun = {
@@ -220,7 +220,7 @@ export async function getLiveAnalysis(userId: string): Promise<LiveAnalysisSnaps
 function clampText(text: string, maxLength: number) {
   const trimmed = text.trim();
   if (trimmed.length <= maxLength) return trimmed;
-  return `${trimmed.slice(0, maxLength - 1).trimEnd()}…`;
+  return `${trimmed.slice(0, maxLength - 3).trimEnd()}...`;
 }
 
 export async function runSystemAgent(userId: string, goal: string, execute: boolean) {

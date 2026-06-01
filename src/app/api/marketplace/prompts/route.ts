@@ -59,6 +59,9 @@ export async function POST(request: Request) {
       })
       .returning();
 
+    if (!created) {
+      return NextResponse.json({ error: "Failed to create template" }, { status: 500 });
+    }
     return NextResponse.json({ template: created, storage: "database" }, { status: 201 });
   } catch (error) {
     if (!isMissingTableError(error)) {

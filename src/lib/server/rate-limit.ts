@@ -1,6 +1,7 @@
 import { env } from "@/lib/env";
 
 const memoryHits = new Map<string, { count: number; resetAt: number }>();
+const MAX_MEMORY_KEYS = 5_000;
 
 type RateLimitOptions = {
   key: string;
@@ -31,6 +32,7 @@ async function redisCommand(command: unknown[]) {
 }
 
 export async function checkRateLimit({ key, limit, windowSeconds }: RateLimitOptions) {
+  pruneMemoryHits();
   const redisKey = `rate:${key}`;
   const redisResult = await redisCommand(["INCR", redisKey]);
 
@@ -62,9 +64,21 @@ export async function checkRateLimit({ key, limit, windowSeconds }: RateLimitOpt
   };
 }
 
+function pruneMemoryHits() {
+  const now = Date.now();
+  for (const [key, value] of memoryHits) {
+    if (value.resetAt <= now) memoryHits.delete(key);
+  }
+  if (memoryHits.size <= MAX_MEMORY_KEYS) return;
+  for (const key of memoryHits.keys()) {
+    memoryHits.delete(key);
+    if (memoryHits.size <= MAX_MEMORY_KEYS) break;
+  }
+}
+
 export async function verifyTurnstile(token: string | null, ip?: string | null) {
   if (!env.TURNSTILE_SECRET_KEY) {
-    return true;
+    return process.env.NODE_ENV !== "production";
   }
   if (!token) {
     return false;

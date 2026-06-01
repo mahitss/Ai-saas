@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ShieldCheck, Fingerprint, Mail, KeyRound, LogOut, RefreshCw, UserCog } from "lucide-react";
+import { ShieldCheck, Fingerprint, Mail, KeyRound, LogOut, RefreshCw, UserCog, Copy, Eye } from "lucide-react";
 import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth.client";
@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type Profile = {
   id: string;
@@ -33,6 +35,8 @@ type Profile = {
   onboardingCompleted: boolean;
   failedLoginAttempts: number;
   lockedUntil: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
 };
 
 type SessionItem = {
@@ -86,6 +90,26 @@ export function AccountPage() {
       Boolean(profile.image),
     ].filter(Boolean).length;
   }, [profile]);
+
+  function copyToClipboard(text: string, label = "Copied") {
+    navigator.clipboard.writeText(text).then(() => toast.success(label));
+  }
+
+  async function exportData() {
+    const res = await fetch("/api/exports/generate", { method: "POST" });
+    if (res.ok) {
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `account-export-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Data exported");
+    } else {
+      toast.error("Export failed");
+    }
+  }
 
   async function loadAccount() {
     setLoading(true);
@@ -309,21 +333,46 @@ export function AccountPage() {
             {loading ? <p className="text-sm text-zinc-500">Loading account settings...</p> : null}
             {profile ? (
               <>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-name">Display name</Label>
-                    <Input id="profile-name" value={profile.name} onChange={(event) => setProfile((current) => current ? { ...current, name: event.target.value } : current)} />
+                <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+                  <div className="flex items-center justify-between text-xs text-zinc-500">
+                    <span>Profile strength</span>
+                    <span>{completion}/5 • {Math.round((completion / 5) * 100)}%</span>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-email">Email</Label>
-                    <Input id="profile-email" value={profile.email} disabled />
-                  </div>
+                  <Progress value={(completion / 5) * 100} className="mt-2 h-2" />
                 </div>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-image">Avatar URL</Label>
-                    <Input id="profile-image" value={profile.image ?? ""} onChange={(event) => setProfile((current) => current ? { ...current, image: event.target.value || null } : current)} />
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="profile-name">Display name</Label>
+                     <Input id="profile-name" value={profile.name} onChange={(event) => setProfile((current) => current ? { ...current, name: event.target.value } : current)} />
+                   </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="profile-email">Email</Label>
+                     <div className="flex gap-2">
+                       <Input id="profile-email" value={profile.email} disabled className="flex-1" />
+                       <Button type="button" size="icon" variant="outline" onClick={() => copyToClipboard(profile.email, "Email copied")} title="Copy email">
+                         <Copy className="size-4" />
+                       </Button>
+                     </div>
+                   </div>
+                 </div>
+                 <div className="flex items-center gap-2 text-xs text-zinc-500">
+                   <span>User ID: {profile.id}</span>
+                   <Button type="button" size="sm" variant="ghost" onClick={() => copyToClipboard(profile.id, "User ID copied")} title="Copy ID">
+                     <Copy className="size-3" />
+                   </Button>
+                 </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                   <div className="space-y-2">
+                     <Label htmlFor="profile-image">Avatar URL</Label>
+                     <Input id="profile-image" value={profile.image ?? ""} onChange={(event) => setProfile((current) => current ? { ...current, image: event.target.value || null } : current)} />
+                     <div className="flex items-center gap-3 pt-1">
+                       <Avatar className="size-10 border">
+                         <AvatarImage src={profile.image || undefined} alt="Avatar preview" />
+                         <AvatarFallback>{profile.name?.[0]?.toUpperCase() ?? "U"}</AvatarFallback>
+                       </Avatar>
+                       <span className="text-xs text-zinc-500">Live preview</span>
+                     </div>
+                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="profile-phone">Phone number</Label>
                     <Input id="profile-phone" value={profile.phoneNumber ?? ""} onChange={(event) => setProfile((current) => current ? { ...current, phoneNumber: event.target.value || null } : current)} />
@@ -356,10 +405,14 @@ export function AccountPage() {
                       <option value="private">Private</option>
                     </select>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-accent">Accent color</Label>
-                    <Input id="profile-accent" type="color" value={profile.themeAccent} onChange={(event) => setProfile((current) => current ? { ...current, themeAccent: event.target.value } : current)} />
-                  </div>
+                   <div className="space-y-2">
+                     <Label htmlFor="profile-accent">Accent color</Label>
+                     <div className="flex items-center gap-2">
+                       <Input id="profile-accent" type="color" value={profile.themeAccent} onChange={(event) => setProfile((current) => current ? { ...current, themeAccent: event.target.value } : current)} className="w-16 p-1" />
+                       <div className="size-8 rounded-md border border-zinc-300" style={{ backgroundColor: profile.themeAccent }} title="Live accent preview" />
+                       <span className="text-xs text-zinc-500">Live preview</span>
+                     </div>
+                   </div>
                   <div className="flex items-end gap-3 rounded-xl border border-zinc-200 p-3">
                     <div className="space-y-1">
                       <p className="text-xs uppercase tracking-wide text-zinc-500">High contrast</p>
@@ -532,12 +585,17 @@ export function AccountPage() {
             </CardHeader>
             <CardContent className="space-y-2 text-sm text-zinc-600">
               <p>Completion progress: {completion}/5 steps</p>
-              <p>Suggested first actions: create a project, start chat, invite the team, and connect an account.</p>
-              <Button type="button" className="w-full bg-zinc-950 text-white hover:bg-zinc-800" onClick={() => setProfile((current) => current ? { ...current, onboardingCompleted: true } : current)}>
-                Finish onboarding
-              </Button>
-            </CardContent>
-          </Card>
+               <p>Suggested first actions: create a project, start chat, invite the team, and connect an account.</p>
+               <div className="grid gap-2 sm:grid-cols-2">
+                 <Button type="button" className="w-full bg-zinc-950 text-white hover:bg-zinc-800" onClick={() => setProfile((current) => current ? { ...current, onboardingCompleted: true } : current)}>
+                   Finish onboarding
+                 </Button>
+                 <Button type="button" variant="outline" onClick={() => void exportData()} className="w-full border-zinc-200">
+                   <Eye className="mr-2 size-4" /> Export my data
+                 </Button>
+               </div>
+             </CardContent>
+           </Card>
         </div>
       </div>
     </main>

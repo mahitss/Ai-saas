@@ -67,5 +67,9 @@ export async function POST(request: Request) {
     })
     .returning();
 
+  if (!conversation) {
+    return NextResponse.json({ error: "Failed to create conversation" }, { status: 500 });
+  }
+
   return NextResponse.json({ conversation }, { status: 201 });
 }

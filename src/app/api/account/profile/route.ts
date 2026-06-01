@@ -123,6 +123,10 @@ export const POST = withApiHandler(async function POST(request: Request) {
     .where(eq(user.id, currentUser.id))
     .returning();
 
+  if (!updated) {
+    notFound("Profile not found");
+  }
+
   logger.info("profile updated", { userId: currentUser.id });
 
   return apiJson({

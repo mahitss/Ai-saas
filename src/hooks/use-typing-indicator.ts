@@ -15,7 +15,7 @@ export interface UseTypingIndicatorOptions {
 }
 
 export function useTypingIndicator(options: UseTypingIndicatorOptions) {
-  const { conversationId, userId, typingTimeout = 3000 } = options;
+  const { conversationId, typingTimeout = 3000 } = options;
   const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 

@@ -11,6 +11,8 @@ export type ApiErrorCode =
   | "METHOD_NOT_ALLOWED"
   | "VALIDATION_ERROR"
   | "CSRF_ERROR"
+  | "RATE_LIMITED"
+  | "PAYLOAD_TOO_LARGE"
   | "INTERNAL_SERVER_ERROR";
 
 type ApiErrorBody = {
@@ -72,8 +74,18 @@ export function notFound(message = "Resource not found"): never {
 }
 
 export async function parseJson(request: Request) {
+  const contentLength = request.headers.get("content-length");
+  if (contentLength && Number(contentLength) > MAX_JSON_BODY_BYTES) {
+    throw new ApiError(413, "PAYLOAD_TOO_LARGE", "Request body is too large");
+  }
+
+  const body = await request.text();
+  if (body.length > MAX_JSON_BODY_BYTES) {
+    throw new ApiError(413, "PAYLOAD_TOO_LARGE", "Request body is too large");
+  }
+
   try {
-    return await request.json();
+    return JSON.parse(body);
   } catch {
     throw new ApiError(400, "BAD_REQUEST", "Request body must be valid JSON");
   }
@@ -96,13 +108,39 @@ export function assertSameOrigin(request: Request) {
   if (!["POST", "PUT", "PATCH", "DELETE"].includes(method)) return;
 
   const origin = request.headers.get("origin");
-  if (!origin) return;
-
   const requestUrl = new URL(request.url);
   const requestOrigin = `${requestUrl.protocol}//${requestUrl.host}`;
+
   if (origin !== requestOrigin) {
     throw new ApiError(403, "CSRF_ERROR", "Cross-site request blocked");
   }
+}
+
+const MAX_JSON_BODY_BYTES = 1_000_000;
+
+function getClientIp(request: Request) {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+}
+
+export async function assertRateLimit(
+  request: Request,
+  options: { keyPrefix: string; limit?: number; windowSeconds?: number; userId?: string },
+) {
+  const { checkRateLimit } = await import("@/lib/server/rate-limit");
+  const limit = await checkRateLimit({
+    key: `${options.keyPrefix}:${options.userId ?? "anon"}:${getClientIp(request)}`,
+    limit: options.limit ?? 60,
+    windowSeconds: options.windowSeconds ?? 60,
+  });
+
+  if (!limit.allowed) {
+    throw new ApiError(429, "RATE_LIMITED", "Too many requests", {
+      retryAfter: limit.resetSeconds,
+      remaining: limit.remaining,
+    });
+  }
+
+  return limit;
 }
 
 export function withApiHandler<TArgs extends unknown[]>(
