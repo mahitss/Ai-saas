@@ -32,7 +32,7 @@ const signInSchema = z.object({
 });
 
 type SignInValues = z.infer<typeof signInSchema>;
-type SocialProvider = "google" | "github" | "microsoft";
+type SocialProvider = "google" | "github";
 type AuthStep = "credentials" | "two-factor";
 
 type AuthResponse = {
@@ -47,7 +47,6 @@ type PasskeySignIn = (input: {
 const SOCIAL_PROVIDERS: { id: SocialProvider; label: string }[] = [
   { id: "google", label: "Continue with Google" },
   { id: "github", label: "Continue with GitHub" },
-  { id: "microsoft", label: "Continue with Microsoft" },
 ];
 
 const getErrorMessage = (error: unknown, fallback: string) => {
@@ -492,7 +491,7 @@ const Page = () => {
             </div>
 
             <div className="rounded-xl border border-white/10 bg-white/5 p-3">
-              <div className="grid gap-2 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {SOCIAL_PROVIDERS.map((provider) => (
                   <Button
                     key={provider.id}
@@ -512,7 +511,7 @@ const Page = () => {
                   </Button>
                 ))}
               </div>
-              <div className="mt-2 grid gap-2 md:grid-cols-2">
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <Button
                   type="button"
                   variant="outline"

@@ -115,9 +115,9 @@ async function run() {
         process.exit(0);
       }
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     s.stop("An error occurred");
-    console.error(error.message || error);
+    console.error(error instanceof Error ? error.message : error);
     p.cancel("Agent operation failed.");
     process.exit(1);
   }

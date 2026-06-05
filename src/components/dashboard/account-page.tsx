@@ -61,7 +61,6 @@ type PasskeySignIn = (input: {
 const SOCIAL_PROVIDERS = [
   { id: "google", label: "Google" },
   { id: "github", label: "GitHub" },
-  { id: "microsoft", label: "Microsoft" },
 ] as const;
 
 export function AccountPage() {
