@@ -1,292 +1,189 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import type { CSSProperties } from "react";
-import { useMemo, useState } from "react";
-import {
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Menu,
-  Play,
-  Search,
-  Star,
-  User,
-  X,
-} from "lucide-react";
+import { useState, useEffect } from "react";
+import { LogIn, UserPlus, Play, Sparkles, Menu, X } from "lucide-react";
+import BoomerangVideoBg from "./boomerang-video-bg";
 
-import { AgentHeroScene } from "@/components/landing/agent-hero-scene";
-import { cn } from "@/lib/utils";
-
-const videoUrl =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260406_094145_4a271a6c-3869-4f1c-8aa7-aeb0cb227994.mp4";
-
-function animationDelay(delay: number) {
-  return { animationDelay: `${delay}ms` };
-}
-
-function LiquidButton({
-  children,
-  className,
-  href,
-  label,
-  onClick,
-  style,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  href?: string;
-  label?: string;
-  onClick?: () => void;
-  style?: CSSProperties;
-}) {
-  const sharedClassName = cn(
-    "liquid-glass inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium text-white transition-transform duration-300 hover:scale-[1.02] active:scale-[0.98]",
-    className,
-  );
-
-  if (href) {
-    return (
-      <Link href={href} aria-label={label} className={sharedClassName} style={style}>
-        {children}
-      </Link>
-    );
-  }
-
-  return (
-    <button type="button" aria-label={label} onClick={onClick} className={sharedClassName} style={style}>
-      {children}
-    </button>
-  );
-}
+const BG_VIDEO =
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_131941_d136af49-e243-493a-be14-6ff3f24e09e6.mp4";
 
 export function AiAgentLanding() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const navItems = useMemo(
-    () => [
-      { label: "Chat", href: "/dashboard/chat" },
-      { label: "Agents", href: "/dashboard/orchestrator" },
-      { label: "Model Lab", href: "/dashboard/model-lab" },
-      { label: "Library", href: "/dashboard/library" },
-      { label: "Trust", href: "/dashboard/security" },
-    ],
-    [],
-  );
+
+  useEffect(() => {
+    if (menuOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [menuOpen]);
+
+  const navLinks = [
+    { href: "#purpose", label: "Purpose" },
+    { href: "#system", label: "The System" },
+    { href: "#pricing", label: "Plans" },
+  ];
 
   return (
-    <main className="relative flex h-screen min-h-[640px] overflow-hidden bg-black text-white">
-      <div className="fixed inset-0 z-0 overflow-hidden bg-[radial-gradient(circle_at_18%_26%,rgba(255,255,255,0.22),transparent_18%),radial-gradient(circle_at_78%_18%,rgba(59,130,246,0.28),transparent_20%),radial-gradient(circle_at_64%_78%,rgba(20,184,166,0.24),transparent_24%),linear-gradient(135deg,#05070d_0%,#101827_42%,#030406_100%)]">
-        <Image
-          src="/hero-neon-chat.svg"
-          alt=""
-          aria-hidden="true"
-          width={720}
-          height={480}
-          className="absolute right-[6vw] top-1/2 w-[min(48vw,720px)] -translate-y-1/2 opacity-70 mix-blend-screen"
-        />
-        <Image
-          src="/hero-hologram-network.svg"
-          alt=""
-          aria-hidden="true"
-          width={520}
-          height={520}
-          className="absolute left-[48vw] top-[8vh] w-[min(34vw,520px)] opacity-55 mix-blend-screen"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,0.72)_0%,rgba(0,0,0,0.28)_48%,rgba(0,0,0,0.05)_100%)]" />
-      </div>
-      <video
-        className="fixed inset-0 z-[1] h-full w-full object-cover opacity-80"
-        src={videoUrl}
-        autoPlay
-        muted
-        loop
-        playsInline
-        aria-hidden="true"
-      />
+    <section className="relative w-full min-h-screen sm:h-screen overflow-hidden">
+      <BoomerangVideoBg src={BG_VIDEO} className="absolute inset-0 w-full h-full" />
+      <nav className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 sm:px-6 md:px-10 py-4 sm:py-6">
+        <div className="flex items-center gap-2 text-[#2d3a2a]">
+          <span className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">
+            Logicra<sup className="text-[10px] sm:text-xs font-medium">TM</sup>
+          </span>
+        </div>
 
-      <div className="pointer-events-none fixed inset-0 z-[2] backdrop-blur-xl [mask-image:linear-gradient(to_top,black_0%,transparent_45%)] [-webkit-mask-image:linear-gradient(to_top,black_0%,transparent_45%)]" />
-      <AgentHeroScene />
-
-      <div className="relative z-10 flex h-full w-full flex-col">
-        <header className="relative z-50 flex items-center justify-between px-4 py-4 sm:px-6 md:px-12 md:py-6">
-          <Link
-            href="/"
-            className="animate-blur-fade-up flex h-8 items-center text-lg font-semibold tracking-[0.24em] text-white md:h-10 md:text-xl"
-            style={animationDelay(0)}
-          >
-            LOGICRA
+        <div className="hidden lg:flex items-center gap-1 bg-white/70 backdrop-blur-md rounded-full pl-6 pr-1 py-1 shadow-sm border border-white/60">
+          {navLinks.map((link, i) => (
+            <a
+              key={link.href}
+              href={link.href}
+              className={`text-sm px-3 py-2 transition-colors ${
+                i === 0 ? "font-semibold text-[#1f2a1d]" : "font-medium text-[#4b5b47] hover:text-[#1f2a1d]"
+              }`}
+            >
+              {link.label}
+            </a>
+          ))}
+          <Link href="/dashboard/chat" className="ml-2 bg-[#1f2a1d] hover:bg-[#2a3827] text-white text-sm font-medium px-5 py-2.5 rounded-full transition-colors">
+            Try it Live
           </Link>
+        </div>
 
-          <nav className="hidden items-center gap-8 lg:flex">
-            {navItems.map((item, index) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className="animate-blur-fade-up text-sm text-white transition-colors hover:text-gray-300"
-                style={animationDelay(100 + index * 50)}
+        <div className="flex items-center gap-3 sm:gap-6 text-[#2d3a2a]">
+          <Link href="/auth/sign-up" className="hidden sm:flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity">
+            <UserPlus className="w-4 h-4" />
+            Sign Me Up!
+          </Link>
+          <Link href="/auth/sign-in" className="hidden sm:flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity">
+            <LogIn className="w-4 h-4" />
+            Enter
+          </Link>
+          <button
+            onClick={() => setMenuOpen((v) => !v)}
+            className="lg:hidden relative flex items-center justify-center w-10 h-10 rounded-full bg-white/70 backdrop-blur-md border border-white/60 text-[#1f2a1d] transition-all duration-300 hover:bg-white/90"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+          >
+            <Menu
+              className={`w-5 h-5 absolute transition-all duration-300 ${
+                menuOpen ? "opacity-0 rotate-90 scale-50" : "opacity-100 rotate-0 scale-100"
+              }`}
+            />
+            <X
+              className={`w-5 h-5 absolute transition-all duration-300 ${
+                menuOpen ? "opacity-100 rotate-0 scale-100" : "opacity-0 -rotate-90 scale-50"
+              }`}
+            />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile menu overlay */}
+      <div
+        className={`lg:hidden fixed inset-0 z-20 transition-opacity duration-300 ${
+          menuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setMenuOpen(false)}
+      >
+        <div className="absolute inset-0 bg-[#1f2a1d]/40 backdrop-blur-sm" />
+      </div>
+
+      {/* Mobile menu drawer */}
+      <div
+        className={`lg:hidden fixed top-0 right-0 bottom-0 z-20 w-[85%] max-w-sm bg-white/95 backdrop-blur-xl shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex flex-col h-full pt-24 px-8 pb-8">
+          <div className="flex flex-col gap-1">
+            {navLinks.map((link, i) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className={`text-2xl font-semibold text-[#1f2a1d] py-4 border-b border-[#1f2a1d]/10 transition-all duration-500 ${
+                  menuOpen ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"
+                }`}
+                style={{ transitionDelay: menuOpen ? `${150 + i * 70}ms` : "0ms" }}
               >
-                {item.label}
-              </Link>
+                {link.label}
+              </a>
             ))}
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <LiquidButton
-              href="/dashboard/chat"
-              className="animate-blur-fade-up hidden px-4 py-2 sm:inline-flex md:px-6"
-              style={animationDelay(350)}
-            >
-              Search
-              <Search size={18} />
-            </LiquidButton>
-            <LiquidButton
-              href="/dashboard/account"
-              label="Open profile"
-              className="animate-blur-fade-up hidden h-10 w-10 sm:inline-flex"
-              style={animationDelay(400)}
-            >
-              <User size={18} />
-            </LiquidButton>
-            <button
-              type="button"
-              aria-label={menuOpen ? "Close menu" : "Open menu"}
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen((open) => !open)}
-              className="liquid-glass animate-blur-fade-up relative grid h-10 w-10 place-items-center rounded-full text-white lg:hidden"
-              style={animationDelay(350)}
-            >
-              <Menu
-                size={20}
-                className={cn(
-                  "absolute transition-all duration-500 ease-out",
-                  menuOpen ? "rotate-180 scale-50 opacity-0" : "rotate-0 scale-100 opacity-100",
-                )}
-              />
-              <X
-                size={20}
-                className={cn(
-                  "absolute transition-all duration-500 ease-out",
-                  menuOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-180 scale-50 opacity-0",
-                )}
-              />
-            </button>
           </div>
 
           <div
-            className={cn(
-              "absolute left-0 right-0 top-[72px] z-40 bg-gray-900/95 px-4 py-4 shadow-2xl backdrop-blur-lg transition-all duration-500 ease-out sm:px-6 lg:hidden",
-              "border-y border-gray-800",
-              menuOpen ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-4 opacity-0",
-            )}
+            className={`mt-8 flex flex-col gap-4 transition-all duration-500 ${
+              menuOpen ? "translate-x-0 opacity-100" : "translate-x-8 opacity-0"
+            }`}
+            style={{ transitionDelay: menuOpen ? "400ms" : "0ms" }}
           >
-            <nav className="flex flex-col">
-              {navItems.map((item, index) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={cn(
-                    "rounded-lg px-3 py-3 text-sm text-white transition-all duration-500 ease-out hover:bg-gray-800/50",
-                    menuOpen ? "translate-x-0 opacity-100" : "-translate-x-3 opacity-0",
-                  )}
-                  style={{ transitionDelay: menuOpen ? `${index * 50}ms` : "0ms" }}
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </nav>
-            <div className="mt-3 grid grid-cols-2 gap-3 border-t border-gray-800 pt-4 sm:hidden">
-                <LiquidButton href="/dashboard/chat" className="px-4 py-2.5">
-                  Search
-                  <Search size={18} />
-              </LiquidButton>
-                <LiquidButton href="/dashboard/account" className="px-4 py-2.5">
-                  Profile
-                  <User size={18} />
-              </LiquidButton>
-            </div>
+            <Link href="/auth/sign-up" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 text-sm font-medium text-[#2d3a2a] sm:hidden">
+              <UserPlus className="w-4 h-4" />
+              Sign Me Up!
+            </Link>
+            <Link href="/auth/sign-in" onClick={() => setMenuOpen(false)} className="flex items-center gap-2 text-sm font-medium text-[#2d3a2a] sm:hidden">
+              <LogIn className="w-4 h-4" />
+              Enter
+            </Link>
+            <Link href="/dashboard/chat" onClick={() => setMenuOpen(false)} className="mt-2 bg-[#1f2a1d] hover:bg-[#2a3827] text-white text-sm font-semibold px-5 py-3 rounded-full transition-colors text-center">
+              Try it Live
+            </Link>
           </div>
-        </header>
-
-        <section className="relative z-10 flex flex-1 flex-col justify-end px-4 pb-8 sm:px-6 md:px-12 md:pb-16">
-          <div className="flex flex-col items-start gap-8 md:flex-row md:items-end md:justify-between">
-            <div className="max-w-4xl flex-1">
-              <div
-                className="animate-blur-fade-up mb-6 flex flex-wrap items-center gap-3 text-xs text-white sm:gap-6 sm:text-sm md:mb-8"
-                style={animationDelay(300)}
-              >
-                <span className="inline-flex items-center gap-2 font-medium">
-                  <Star size={16} className="fill-white sm:h-5 sm:w-5" />
-                  98% TASK CLARITY
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <Clock size={16} className="sm:h-5 sm:w-5" />
-                  Always-on agents
-                </span>
-                <span className="inline-flex items-center gap-2">
-                  <Calendar size={16} className="sm:h-5 sm:w-5" />
-                  May, 2026
-                </span>
-              </div>
-
-              <h1
-                className="animate-blur-fade-up mb-4 max-w-3xl text-3xl font-normal leading-[0.94] tracking-[-0.04em] text-white sm:text-5xl md:mb-6 md:text-6xl lg:text-7xl"
-                style={animationDelay(400)}
-              >
-                Command Agents.
-                <span className="block">Work Smarter.</span>
-              </h1>
-
-              <p
-                className="animate-blur-fade-up mb-6 max-w-2xl text-base leading-7 text-gray-400 sm:text-lg md:mb-12 md:text-xl"
-                style={animationDelay(500)}
-              >
-                A cinematic AI workspace where conversations, memory, automation, and trust signals move in one focused command layer.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 sm:gap-4">
-                <Link
-                  href="/auth/sign-up"
-                  className="animate-blur-fade-up inline-flex items-center justify-center gap-2 rounded-full bg-white px-6 py-2.5 text-sm font-medium text-black transition-colors hover:bg-gray-200 sm:px-8 sm:py-3"
-                  style={animationDelay(600)}
-                >
-                  <Play size={18} className="fill-black" />
-                  Start Now
-                </Link>
-                <LiquidButton
-                  href="/contact"
-                  className="animate-blur-fade-up px-6 py-2.5 sm:px-8 sm:py-3"
-                  style={animationDelay(700)}
-                >
-                  Learn More
-                </LiquidButton>
-              </div>
-            </div>
-
-            <div className="flex w-full items-center gap-3 md:w-auto md:justify-end">
-              <LiquidButton
-                href="/dashboard/library"
-                className="animate-blur-fade-up px-4 py-2.5 sm:px-6 sm:py-3"
-                style={animationDelay(800)}
-              >
-                <ChevronLeft size={18} />
-                Library
-              </LiquidButton>
-              <LiquidButton
-                href="/dashboard/chat"
-                className="animate-blur-fade-up px-4 py-2.5 sm:px-6 sm:py-3"
-                style={animationDelay(900)}
-              >
-                Chat
-                <ChevronRight size={18} />
-              </LiquidButton>
-            </div>
-          </div>
-        </section>
+        </div>
       </div>
 
-    </main>
+      {/* Hero copy */}
+      <div className="relative z-10 flex flex-col items-center text-center pt-24 sm:pt-28 md:pt-32 px-4 sm:px-6">
+        <h1
+          className="font-normal leading-[0.95] text-[#336443] text-[2rem] sm:text-4xl md:text-5xl lg:text-[4.75rem] xl:text-[5.25rem] max-w-5xl"
+          style={{ fontFamily: "'Neue Haas Grotesk Display Pro 55 Roman', 'Neue Haas Grotesk Text Pro', 'Helvetica Neue', Helvetica, Arial, sans-serif", letterSpacing: "-0.035em" }}
+        >
+          Close the rift{" "}
+          <span className="text-[#85AB8B]">
+            linking
+            <br className="hidden sm:block" /> focus and action
+          </span>
+        </h1>
+        <p className="mt-6 sm:mt-8 text-[#4b5b47] text-sm sm:text-base md:text-lg leading-relaxed max-w-md px-2">
+          Shape scattered signals and thoughts into meaningful outcomes via AI-driven productivity workflows.
+        </p>
+      </div>
+
+      {/* Bottom-left CTA block */}
+      <div className="absolute left-4 right-4 sm:right-auto sm:left-6 md:left-10 bottom-6 sm:bottom-8 md:bottom-10 z-10 max-w-sm">
+        <div className="flex items-center gap-2 text-[#3d5638] sm:text-white/95 mb-3">
+          <Sparkles className="w-4 h-4" />
+          <span className="text-sm font-semibold sm:font-medium">
+            FocusEngine<sup className="text-[10px]">TM</sup>
+          </span>
+        </div>
+        <p className="text-[#3d5638]/90 sm:text-white/85 text-xs leading-relaxed mb-6 max-w-xs font-medium sm:font-normal">
+          Logicra smoothly unites your daily conversations, memory tracking, and voice instructions, streamlining data paths between services without having to write custom scripts.
+        </p>
+        <div className="flex items-center gap-4 flex-wrap">
+          <Link href="/dashboard/chat" className="bg-[#3d5638] sm:bg-white hover:bg-[#2d4228] sm:hover:bg-white/90 text-white sm:text-[#1f2a1d] text-sm font-semibold px-5 sm:px-6 py-2.5 sm:py-3 rounded-full transition-colors shadow-sm text-center">
+            Try it Live
+          </Link>
+          <a href="#purpose" className="text-[#3d5638] sm:text-white text-sm font-semibold sm:font-medium hover:opacity-80 transition-opacity">
+            Know More.
+          </a>
+        </div>
+      </div>
+
+      {/* Bottom-right video link */}
+      <div className="hidden sm:flex absolute right-6 md:right-10 bottom-8 md:bottom-10 z-10 items-center gap-2 text-white/90 text-sm">
+        <button className="flex items-center justify-center w-6 h-6 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors">
+          <Play className="w-3 h-3 fill-white text-white ml-0.5" />
+        </button>
+        <span className="font-medium">How we build?</span>
+        <span className="text-white/60">1:35</span>
+      </div>
+    </section>
   );
 }
