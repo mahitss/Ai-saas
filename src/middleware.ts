@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+const isProd = process.env.NODE_ENV === "production";
+
 const SECURITY_HEADERS: Record<string, string> = {
   "X-Content-Type-Options": "nosniff",
   "X-Frame-Options": "DENY",
@@ -8,19 +10,17 @@ const SECURITY_HEADERS: Record<string, string> = {
   "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
   "Content-Security-Policy": [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    `script-src 'self' 'unsafe-inline'${isProd ? "" : " 'unsafe-eval'"}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
-    "connect-src 'self' https:",
+    "connect-src 'self' https: wss:",
     "media-src 'self' blob: data:",
     "frame-ancestors 'none'",
   ].join("; "),
 };
 
-const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = 120;
-const rateLimitHits = new Map<string, { count: number; resetAt: number }>();
 
 function applySecurityHeaders(response: NextResponse) {
   for (const [key, value] of Object.entries(SECURITY_HEADERS)) {
@@ -37,37 +37,33 @@ function getClientIp(request: NextRequest) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
 }
 
-function checkApiRateLimit(request: NextRequest) {
+async function checkApiRateLimit(request: NextRequest) {
   if (!request.nextUrl.pathname.startsWith("/api/")) return null;
 
-  const now = Date.now();
-  for (const [key, value] of rateLimitHits) {
-    if (value.resetAt <= now) rateLimitHits.delete(key);
+  const { checkRateLimit } = await import("@/lib/server/rate-limit");
+  const limit = await checkRateLimit({
+    key: `middleware:${getClientIp(request)}:${request.nextUrl.pathname}`,
+    limit: RATE_LIMIT_MAX,
+    windowSeconds: 60,
+  });
+
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { error: { code: "RATE_LIMITED", message: "Too many requests" } },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(limit.resetSeconds),
+        },
+      },
+    );
   }
 
-  const key = `${getClientIp(request)}:${request.nextUrl.pathname}`;
-  const current = rateLimitHits.get(key);
-  const next =
-    current && current.resetAt > now
-      ? { count: current.count + 1, resetAt: current.resetAt }
-      : { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS };
-  rateLimitHits.set(key, next);
-
-  if (next.count <= RATE_LIMIT_MAX) return null;
-
-  return NextResponse.json(
-    { error: { code: "RATE_LIMITED", message: "Too many requests" } },
-    {
-      status: 429,
-      headers: {
-        "Retry-After": String(Math.max(1, Math.ceil((next.resetAt - now) / 1000))),
-      },
-    },
-  );
+  return null;
 }
 
-export function middleware(request: NextRequest) {
-  const rateLimited = checkApiRateLimit(request);
+export async function middleware(request: NextRequest) {
+  const rateLimited = await checkApiRateLimit(request);
   if (rateLimited) return applySecurityHeaders(rateLimited);
 
   if (request.nextUrl.pathname.startsWith("/api/") && isUnsafeMethod(request.method)) {

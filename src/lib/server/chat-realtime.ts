@@ -228,14 +228,16 @@ export function registerRealtimeListener(userId: string, listener: (event: Realt
 }
 
 export async function setPresence(userId: string, status: PresenceStatus, typingConversationId: string | null = null, typing = false) {
+  const cleanStatus: PresenceStatus = status === "online" || status === "away" || status === "offline" ? status : "online";
+  const cleanTypingConversationId = typingConversationId ? String(typingConversationId).slice(0, 128).replace(/[^a-zA-Z0-9-]/g, "") : null;
   const lastSeenAt = new Date();
   const updatedAt = new Date();
   const [row] = await db
     .insert(chatPresence)
-    .values({ userId, status, lastSeenAt, typingConversationId, typing, updatedAt })
+    .values({ userId, status: cleanStatus, lastSeenAt, typingConversationId: cleanTypingConversationId, typing, updatedAt })
     .onConflictDoUpdate({
       target: chatPresence.userId,
-      set: { status, lastSeenAt, typingConversationId, typing, updatedAt },
+      set: { status: cleanStatus, lastSeenAt, typingConversationId: cleanTypingConversationId, typing, updatedAt },
     })
     .returning();
   if (!row) throw new Error("Failed to upsert presence");
@@ -382,14 +384,16 @@ export async function getChatRealtimeSnapshot(userId: string) {
 }
 
 export async function addReaction(userId: string, messageId: string, emoji: string) {
+  const cleanMessageId = String(messageId).replace(/[^a-zA-Z0-9-]/g, "");
+  const cleanEmoji = String(emoji).slice(0, 16).trim();
   const [row] = await db
     .insert(chatReaction)
-    .values({ id: crypto.randomUUID(), messageId, userId, emoji, createdAt: new Date() })
+    .values({ id: crypto.randomUUID(), messageId: cleanMessageId, userId, emoji: cleanEmoji, createdAt: new Date() })
     .returning();
   if (!row) throw new Error("Failed to create reaction");
   const reaction = { ...row, createdAt: row.createdAt.toISOString() };
   pushToListeners(userId, { type: "reaction", reaction });
-  await addAuditLog(userId, { action: "reaction", targetType: "message", targetId: messageId, detail: emoji });
+  await addAuditLog(userId, { action: "reaction", targetType: "message", targetId: cleanMessageId, detail: cleanEmoji });
   return reaction;
 }
 
@@ -399,9 +403,11 @@ export async function listReactions(userId: string) {
 }
 
 export async function addThreadReply(userId: string, messageId: string, content: string) {
+  const cleanMessageId = String(messageId).replace(/[^a-zA-Z0-9-]/g, "");
+  const cleanContent = String(content).slice(0, 4096).trim();
   const [row] = await db
     .insert(chatThreadReply)
-    .values({ id: crypto.randomUUID(), messageId, userId, content, createdAt: new Date() })
+    .values({ id: crypto.randomUUID(), messageId: cleanMessageId, userId, content: cleanContent, createdAt: new Date() })
     .returning();
   if (!row) throw new Error("Failed to create thread reply");
   const reply = { ...row, createdAt: row.createdAt.toISOString() };
