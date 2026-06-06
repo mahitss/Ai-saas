@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { LogIn, UserPlus, Play, Sparkles, Menu, X } from "lucide-react";
 import BoomerangVideoBg from "./boomerang-video-bg";
+import { AgentHeroScene } from "./agent-hero-scene";
 
 const BG_VIDEO =
   "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260511_131941_d136af49-e243-493a-be14-6ff3f24e09e6.mp4";
@@ -31,6 +32,7 @@ export function AiAgentLanding() {
   return (
     <section className="relative w-full min-h-screen sm:h-screen overflow-hidden">
       <BoomerangVideoBg src={BG_VIDEO} className="absolute inset-0 w-full h-full" />
+      <AgentHeroScene />
       <nav className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-4 sm:px-6 md:px-10 py-4 sm:py-6">
         <div className="flex items-center gap-2 text-[#2d3a2a]">
           <span className="text-lg sm:text-xl md:text-2xl font-semibold tracking-tight">
