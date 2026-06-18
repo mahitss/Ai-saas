@@ -1,13 +1,14 @@
 "use client";
 
-import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bot, ShieldCheck, Sparkles } from "lucide-react";
+import { Bot, Eye, EyeOff, ShieldCheck, Sparkles } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
-import { authClient } from "@/lib/auth.client";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -19,44 +20,84 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { authClient } from "@/lib/auth.client";
+
+const signUpSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Enter at least 2 characters.")
+    .max(80, "Name must be 80 characters or fewer."),
+  email: z.string().trim().email("Enter a valid email address."),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters.")
+    .regex(/[A-Z]/, "Add at least one uppercase letter.")
+    .regex(/[0-9]/, "Add at least one number."),
+});
+
+type SignUpValues = z.infer<typeof signUpSchema>;
 
 const Page = () => {
   const router = useRouter();
   const { data: session, isPending: isSessionPending } = authClient.useSession();
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    formState: { errors },
+    handleSubmit,
+    register,
+    watch,
+  } = useForm<SignUpValues>({
+    resolver: zodResolver(signUpSchema),
+    mode: "onTouched",
+    defaultValues: {
+      name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  const password = watch("password");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (session) router.replace("/dashboard");
   }, [router, session]);
 
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const onSubmit = handleSubmit(async (values) => {
     setIsLoading(true);
 
-    await authClient.signUp.email(
-      {
-        name,
-        email,
-        password,
-        callbackURL: "/onboarding",
-      },
-      {
-        onSuccess: () => {
-          toast.success("Account created successfully.");
-          router.push("/onboarding");
+    try {
+      await authClient.signUp.email(
+        {
+          name: values.name,
+          email: values.email,
+          password: values.password,
+          callbackURL: "/onboarding",
         },
-        onError: (ctx) => {
-          toast.error(ctx.error.message || "Unable to create account.");
+        {
+          onSuccess: () => {
+            toast.success("Account created successfully.");
+            router.push("/onboarding");
+          },
+          onError: (ctx) => {
+            toast.error(ctx.error.message || "Unable to create account.");
+          },
         },
-      },
-    );
+      );
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to create account.");
+    } finally {
+      setIsLoading(false);
+    }
+  });
 
-    setIsLoading(false);
-  };
+  const passwordRequirements = [
+    { label: "8+ characters", met: password.length >= 8 },
+    { label: "Uppercase letter", met: /[A-Z]/.test(password) },
+    { label: "Number", met: /[0-9]/.test(password) },
+  ];
 
   if (isSessionPending) {
     return (
@@ -89,7 +130,7 @@ const Page = () => {
       </CardHeader>
 
       <CardContent>
-        <form className="space-y-4 pt-6" onSubmit={onSubmit}>
+        <form className="space-y-4 pt-6" onSubmit={onSubmit} noValidate>
           <div className="space-y-2">
             <Label htmlFor="sign-up-name" className="text-zinc-200">
               Name
@@ -97,11 +138,17 @@ const Page = () => {
             <Input
               id="sign-up-name"
               placeholder="Your name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
               className="border-white/10 bg-white/5 text-white placeholder:text-zinc-500 focus-visible:border-white/20 focus-visible:ring-0"
-              required
+              autoComplete="name"
+              aria-invalid={Boolean(errors.name)}
+              aria-describedby={errors.name ? "sign-up-name-error" : undefined}
+              {...register("name")}
             />
+            {errors.name ? (
+              <p id="sign-up-name-error" className="text-xs text-amber-300">
+                {errors.name.message}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
@@ -112,27 +159,62 @@ const Page = () => {
               id="sign-up-email"
               type="email"
               placeholder="you@example.com"
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
               className="border-white/10 bg-white/5 text-white placeholder:text-zinc-500 focus-visible:border-white/20 focus-visible:ring-0"
-              required
+              autoComplete="email"
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "sign-up-email-error" : undefined}
+              {...register("email")}
             />
+            {errors.email ? (
+              <p id="sign-up-email-error" className="text-xs text-amber-300">
+                {errors.email.message}
+              </p>
+            ) : null}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="sign-up-password" className="text-zinc-200">
               Password
             </Label>
-            <Input
-              id="sign-up-password"
-              type="password"
-              placeholder="At least 8 characters"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="border-white/10 bg-white/5 text-white placeholder:text-zinc-500 focus-visible:border-white/20 focus-visible:ring-0"
-              required
-              minLength={8}
-            />
+            <div className="relative">
+              <Input
+                id="sign-up-password"
+                type={showPassword ? "text" : "password"}
+                placeholder="At least 8 characters"
+                className="border-white/10 bg-white/5 pr-12 text-white placeholder:text-zinc-500 focus-visible:border-white/20 focus-visible:ring-0"
+                autoComplete="new-password"
+                aria-invalid={Boolean(errors.password)}
+                aria-describedby={
+                  errors.password
+                    ? "sign-up-password-error sign-up-password-help"
+                    : "sign-up-password-help"
+                }
+                {...register("password")}
+              />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 transition-colors hover:text-white"
+                onClick={() => setShowPassword((value) => !value)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+              </button>
+            </div>
+            <div id="sign-up-password-help" className="grid gap-1 text-xs text-zinc-400 sm:grid-cols-3">
+              {passwordRequirements.map((requirement) => (
+                <span
+                  key={requirement.label}
+                  className={requirement.met ? "text-emerald-300" : "text-zinc-500"}
+                >
+                  {requirement.label}
+                </span>
+              ))}
+            </div>
+            {errors.password ? (
+              <p id="sign-up-password-error" className="text-xs text-amber-300">
+                {errors.password.message}
+              </p>
+            ) : null}
           </div>
 
           <Button type="submit" className="w-full bg-white text-zinc-950 hover:bg-zinc-100" disabled={isLoading}>
@@ -140,7 +222,7 @@ const Page = () => {
           </Button>
 
           <div className="rounded-lg border border-white/10 bg-white/5 p-3 text-xs text-zinc-400">
-            After sign-up, you’ll be guided to a simple wizard to set preferences, invite teammates, or create your first project/chat.
+            After sign-up, you'll be guided to a simple wizard to set preferences, invite teammates, or create your first project/chat.
           </div>
 
           <div className="grid grid-cols-3 gap-2">

@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { Eye, EyeOff, Fingerprint, KeyRound, Mail, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, Fingerprint, KeyRound, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 const GithubIcon = (props: React.SVGProps<SVGSVGElement>) => (

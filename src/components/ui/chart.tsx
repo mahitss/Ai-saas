@@ -262,11 +262,12 @@ function ChartLegendContent({
   hideIcon?: boolean
   nameKey?: string
   payload?: Array<{
-    value: any
+    value: string | number
     type?: string
     color?: string
-    dataKey?: any
-    [key: string]: any
+    dataKey?: string | number
+    payload?: Record<string, unknown>
+    [key: string]: unknown
   }>
   verticalAlign?: "top" | "bottom" | "middle"
 }) {

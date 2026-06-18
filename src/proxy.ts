@@ -15,7 +15,7 @@ const SECURITY_HEADERS: Record<string, string> = {
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     "connect-src 'self' https: wss:",
-    "media-src 'self' blob: data:",
+    "media-src 'self' blob: data: https:",
     "frame-ancestors 'none'",
   ].join("; "),
 };
@@ -34,7 +34,11 @@ function isUnsafeMethod(method: string) {
 }
 
 function getClientIp(request: NextRequest) {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
 }
 
 async function checkApiRateLimit(request: NextRequest) {
@@ -42,7 +46,7 @@ async function checkApiRateLimit(request: NextRequest) {
 
   const { checkRateLimit } = await import("@/lib/server/rate-limit");
   const limit = await checkRateLimit({
-    key: `middleware:${getClientIp(request)}:${request.nextUrl.pathname}`,
+    key: `proxy:${getClientIp(request)}:${request.nextUrl.pathname}`,
     limit: RATE_LIMIT_MAX,
     windowSeconds: 60,
   });
@@ -62,7 +66,7 @@ async function checkApiRateLimit(request: NextRequest) {
   return null;
 }
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const rateLimited = await checkApiRateLimit(request);
   if (rateLimited) return applySecurityHeaders(rateLimited);
 

@@ -10,63 +10,63 @@ const config: Config = {
     extend: {
       colors: {
         // Base colors
-        background: "hsl(var(--background) / <alpha-value>)",
-        foreground: "hsl(var(--foreground) / <alpha-value>)",
+        background: "var(--background)",
+        foreground: "var(--foreground)",
 
         // Card colors
         card: {
-          DEFAULT: "hsl(var(--card) / <alpha-value>)",
-          foreground: "hsl(var(--card-foreground) / <alpha-value>)",
+          DEFAULT: "var(--card)",
+          foreground: "var(--card-foreground)",
         },
 
         // Popover colors
         popover: {
-          DEFAULT: "hsl(var(--popover) / <alpha-value>)",
-          foreground: "hsl(var(--popover-foreground) / <alpha-value>)",
+          DEFAULT: "var(--popover)",
+          foreground: "var(--popover-foreground)",
         },
 
         // Primary colors
         primary: {
-          DEFAULT: "hsl(var(--primary) / <alpha-value>)",
-          foreground: "hsl(var(--primary-foreground) / <alpha-value>)",
+          DEFAULT: "var(--primary)",
+          foreground: "var(--primary-foreground)",
         },
 
         // Secondary colors
         secondary: {
-          DEFAULT: "hsl(var(--secondary) / <alpha-value>)",
-          foreground: "hsl(var(--secondary-foreground) / <alpha-value>)",
+          DEFAULT: "var(--secondary)",
+          foreground: "var(--secondary-foreground)",
         },
 
         // Muted colors
         muted: {
-          DEFAULT: "hsl(var(--muted) / <alpha-value>)",
-          foreground: "hsl(var(--muted-foreground) / <alpha-value>)",
+          DEFAULT: "var(--muted)",
+          foreground: "var(--muted-foreground)",
         },
 
         // Accent colors
         accent: {
-          DEFAULT: "hsl(var(--accent) / <alpha-value>)",
-          foreground: "hsl(var(--accent-foreground) / <alpha-value>)",
+          DEFAULT: "var(--accent)",
+          foreground: "var(--accent-foreground)",
         },
 
         // Destructive colors
         destructive: {
-          DEFAULT: "hsl(var(--destructive) / <alpha-value>)",
-          foreground: "hsl(var(--destructive-foreground) / <alpha-value>)",
+          DEFAULT: "var(--destructive)",
+          foreground: "var(--destructive-foreground)",
         },
 
         // Border colors
-        border: "hsl(var(--border) / <alpha-value>)",
-        input: "hsl(var(--input) / <alpha-value>)",
-        ring: "hsl(var(--ring) / <alpha-value>)",
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
 
         // Chart colors
         chart: {
-          "1": "hsl(var(--chart-1) / <alpha-value>)",
-          "2": "hsl(var(--chart-2) / <alpha-value>)",
-          "3": "hsl(var(--chart-3) / <alpha-value>)",
-          "4": "hsl(var(--chart-4) / <alpha-value>)",
-          "5": "hsl(var(--chart-5) / <alpha-value>)",
+          "1": "var(--chart-1)",
+          "2": "var(--chart-2)",
+          "3": "var(--chart-3)",
+          "4": "var(--chart-4)",
+          "5": "var(--chart-5)",
         },
       },
       borderRadius: {
